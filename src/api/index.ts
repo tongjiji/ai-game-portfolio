@@ -33,13 +33,18 @@ export const api = {
     },
   },
   works: {
-    get: async () => {
+    get: async (id?: string) => {
       if (useSupabase && supabase) {
+        if (id) {
+          const { data, error } = await supabase.from('works').select('*').eq('id', id).single();
+          if (error) throw error;
+          return data;
+        }
         const { data, error } = await supabase.from('works').select('*');
         if (error) throw error;
         return data;
       }
-      return fetch(`${BASE_URL}/works`).then(res => res.json());
+      return fetch(`${BASE_URL}/works${id ? '/' + id : ''}`).then(res => res.json());
     },
     create: async (data: any) => {
       if (useSupabase && supabase) {
@@ -324,7 +329,7 @@ export const api = {
         const fileExt = file.name.split('.').pop() || 'bin';
         const fileName = `${Date.now()}-${Math.round(Math.random() * 1E9)}.${fileExt}`;
         
-        const { data, error } = await supabase.storage
+        const { error } = await supabase.storage
           .from('videos')
           .upload(fileName, file, {
             cacheControl: '3600',
@@ -335,13 +340,13 @@ export const api = {
           throw error;
         }
         
-        const { data: { publicUrl } } = supabase.storage
+        const { data: urlData } = supabase.storage
           .from('videos')
           .getPublicUrl(fileName);
         
         return {
           success: true,
-          url: publicUrl,
+          url: urlData.publicUrl,
           filename: fileName,
           originalName: file.name,
           size: file.size,

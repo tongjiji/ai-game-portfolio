@@ -42,7 +42,7 @@ export const Admin = () => {
     try {
       const [profileData, worksData] = await Promise.all([
         api.profile.get(),
-        api.works.getAll(),
+        api.works.get(),
       ]);
       setProfile(profileData);
       setWorks(worksData);

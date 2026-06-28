@@ -12,7 +12,7 @@ export const Portfolio = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.works.getAll().then((data) => {
+    api.works.get().then((data) => {
       setWorks(data);
       setLoading(false);
     }).catch(() => {
@@ -65,11 +65,10 @@ export const Portfolio = () => {
             <button
               key={model.id}
               onClick={() => setSelectedModel(model.id)}
-              className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 ${
-                selectedModel === model.id
+              className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 ${selectedModel === model.id
                   ? 'bg-apple-blue text-white'
                   : 'bg-apple-light text-apple-gray hover:bg-gray-200'
-              }`}
+                }`}
             >
               {model.name}
             </button>
