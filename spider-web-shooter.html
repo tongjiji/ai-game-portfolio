@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🕷️ 蜘蛛侠蛛网射手</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0a0a12; font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; }
+
+  /* ---- Canvas ---- */
+  #canvas {
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: #000;
+    border-radius: 4px;
+    box-shadow: 0 0 60px rgba(80, 120, 255, 0.15);
+  }
+
+  /* ---- Loading ---- */
+  #loadingOverlay {
+    position: fixed; inset: 0;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(8,8,15,0.92); z-index: 90;
+  }
+  .spinner {
+    width: 56px; height: 56px;
+    border: 4px solid rgba(255,255,255,0.1);
+    border-top-color: #e8483a; border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  #loadingOverlay p { color: #8899bb; margin-top: 20px; font-size: 14px; }
+
+  /* ---- Error ---- */
+  #errorOverlay {
+    position: fixed; inset: 0;
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    background: rgba(8,8,15,0.95); z-index: 95; padding: 40px;
+  }
+  #errorOverlay .err-icon { font-size: 56px; margin-bottom: 16px; }
+  #errorOverlay h2 { color: #e8483a; font-size: 22px; margin-bottom: 10px; }
+  #errorOverlay p { color: #8899bb; font-size: 14px; text-align: center; max-width: 460px; line-height: 1.7; }
+  #errorOverlay p code {
+    display: inline-block; padding: 2px 8px; margin: 0 3px;
+    background: rgba(255,255,255,0.08); border-radius: 5px;
+    font-size: 12px; color: #ccd;
+  }
+  #reloadBtn {
+    margin-top: 24px; padding: 12px 36px; font-size: 15px; font-weight: 700;
+    color: #fff; border: none; border-radius: 40px;
+    background: linear-gradient(135deg, #e8483a, #c42e2e);
+    cursor: pointer; transition: all 0.25s;
+    box-shadow: 0 4px 24px rgba(232, 72, 58, 0.4);
+  }
+  #reloadBtn:hover { transform: scale(1.05); }
+
+  /* ---- HUD ---- */
+  #hud {
+    position: fixed; top: 0; left: 0; right: 0;
+    padding: 18px 28px;
+    display: flex; justify-content: space-between; align-items: flex-start;
+    z-index: 10; pointer-events: none;
+  }
+  .hud-left, .hud-right { display: flex; flex-direction: column; gap: 8px; }
+  .hud-right { align-items: flex-end; }
+
+  .hud-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px; border-radius: 20px;
+    background: rgba(15,15,28,0.7); backdrop-filter: blur(12px);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #ccd; font-size: 14px; font-weight: 600;
+  }
+  .hud-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #444; transition: all 0.3s; }
+  .hud-badge .dot.active { background: #e8483a; box-shadow: 0 0 12px rgba(232,72,58,0.8); }
+
+  .hud-counter {
+    font-size: 28px; font-weight: 800; color: #fff;
+    text-shadow: 0 0 20px rgba(232,72,58,0.4);
+  }
+  .hud-counter span { font-size: 14px; color: #8899bb; font-weight: 400; margin-left: 4px; }
+
+  .hud-tip {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    padding: 10px 24px; border-radius: 20px;
+    background: rgba(15,15,28,0.6); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #8899bb; font-size: 13px; z-index: 10; pointer-events: none;
+  }
+  .hud-tip kbd {
+    display: inline-block; padding: 2px 8px; margin: 0 3px;
+    background: rgba(255,255,255,0.08); border-radius: 5px;
+    font-size: 11px; color: #ccd;
+  }
+
+  /* Audio hint */
+  #audioHint {
+    position: fixed; top: 80px; left: 50%; transform: translateX(-50%);
+    padding: 8px 18px; border-radius: 20px;
+    background: rgba(15,15,28,0.7); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.06);
+    color: #8899bb; font-size: 12px; z-index: 10;
+    cursor: pointer; transition: opacity 0.3s;
+  }
+  #audioHint.hidden { opacity: 0; pointer-events: none; }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <p id="loadingText">正在启动摄像头与模型…</p>
+</div>
+
+<!-- Error -->
+<div id="errorOverlay">
+  <div class="err-icon">⚠️</div>
+  <h2 id="errorTitle">出错了</h2>
+  <p id="errorDesc"></p>
+  <button id="reloadBtn">刷新页面</button>
+</div>
+
+<!-- Canvas -->
+<canvas id="canvas"></canvas>
+
+<!-- HUD -->
+<div id="hud" style="display:none;">
+  <div class="hud-left">
+    <div class="hud-badge"><div class="dot" id="gestureDot"></div><span id="gestureText">等待手势…</span></div>
+  </div>
+  <div class="hud-right">
+    <div class="hud-counter"><span id="webCount">0</span><span> 蛛网</span></div>
+  </div>
+</div>
+
+<div class="hud-tip" id="hudTip" style="display:none;">
+  食指 + 小指伸出，中指无名指弯曲 → <kbd>THWIP!</kbd> &nbsp;|&nbsp; 按 <kbd>H</kbd> 切换骨骼显示
+</div>
+
+<div id="audioHint">点击页面任意位置启用音效</div>
+
+<script>
+// ======================== Config ========================
+const HAND_CONNECTIONS = [
+  [0,1],[1,2],[2,3],[3,4],
+  [0,5],[5,6],[6,7],[7,8],
+  [5,9],[9,10],[10,11],[11,12],
+  [9,13],[13,14],[14,15],[15,16],
+  [13,17],[17,18],[18,19],[19,20],
+  [0,17],[5,9],[9,13],[13,17]
+];
+const COOLDOWN = 450;
+const WEB_SPEED = 4200;
+const WEB_ATTACH_DURATION = 650;
+const WEB_FADE_RATE = 0.035;
+const INIT_TIMEOUT = 30000; // abort if model fails for 30s
+
+// ======================== State ========================
+const video = document.createElement("video");
+video.autoplay = true; video.playsInline = true; video.muted = true;
+
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+let hands = null;
+let latestResults = null;
+let modelReady = false;
+let audioCtx = null;
+let audioEnabled = false;
+let running = false;
+let webs = [];
+let particles = [];
+let thwips = [];
+let webCount = 0;
+let showSkeleton = true;
+let lastWebTime = { Left: 0, Right: 0 };
+
+// ======================== DOM ========================
+const loadingOverlay = document.getElementById("loadingOverlay");
+const loadingText = document.getElementById("loadingText");
+const errorOverlay = document.getElementById("errorOverlay");
+const errorTitle = document.getElementById("errorTitle");
+const errorDesc = document.getElementById("errorDesc");
+const reloadBtn = document.getElementById("reloadBtn");
+const hud = document.getElementById("hud");
+const hudTip = document.getElementById("hudTip");
+const gestureDot = document.getElementById("gestureDot");
+const gestureText = document.getElementById("gestureText");
+const webCountEl = document.getElementById("webCount");
+const audioHint = document.getElementById("audioHint");
+
+// ======================== Audio ========================
+async function enableAudio() {
+  if (audioEnabled) return;
+  try {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === "suspended") await audioCtx.resume();
+    audioEnabled = true;
+    audioHint.classList.add("hidden");
+  } catch (e) { console.warn("Audio enable failed:", e); }
+}
+
+function playThwip() {
+  if (!audioEnabled || !audioCtx) return;
+  const now = audioCtx.currentTime;
+
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.connect(gain); gain.connect(audioCtx.destination);
+  osc.type = "sawtooth";
+  osc.frequency.setValueAtTime(1400, now);
+  osc.frequency.exponentialRampToValueAtTime(180, now + 0.07);
+  gain.gain.setValueAtTime(0.12, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+  osc.start(now); osc.stop(now + 0.1);
+
+  const bufSize = audioCtx.sampleRate * 0.06;
+  const buf = audioCtx.createBuffer(1, bufSize, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) d[i] = (Math.random()*2-1) * (1 - i/bufSize);
+  const noise = audioCtx.createBufferSource();
+  const nGain = audioCtx.createGain();
+  const nFilter = audioCtx.createBiquadFilter();
+  noise.buffer = buf;
+  nFilter.type = "highpass"; nFilter.frequency.value = 2500;
+  noise.connect(nFilter); nFilter.connect(nGain); nGain.connect(audioCtx.destination);
+  nGain.gain.setValueAtTime(0.06, now);
+  nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+  noise.start(now);
+}
+
+window.addEventListener("click", enableAudio, { once: true });
+window.addEventListener("keydown", enableAudio, { once: true });
+
+// ======================== MediaPipe Hands Loader ========================
+function loadScript(url) {
+  return new Promise((resolve, reject) => {
+    const s = document.createElement("script");
+    s.src = url;
+    s.crossOrigin = "anonymous";
+    s.onload = () => resolve();
+    s.onerror = () => reject(new Error(`无法加载 ${url}`));
+    s.onabort = () => reject(new Error(`加载中断 ${url}`));
+    document.head.appendChild(s);
+  });
+}
+
+async function loadMediaPipeHands() {
+  loadingText.textContent = "正在加载手部追踪库…";
+
+  // Try several mirrors; elemecdn is often faster in China.
+  const cdnBases = [
+    "https://npm.elemecdn.com/@mediapipe/hands/",
+    "https://cdn.jsdelivr.net/npm/@mediapipe/hands/",
+    "https://unpkg.com/@mediapipe/hands/"
+  ];
+
+  for (const base of cdnBases) {
+    try {
+      await loadScript(`${base}hands.js`);
+      if (typeof window.Hands === "function") return base;
+    } catch (e) {
+      console.warn(`CDN failed: ${base}`, e);
+    }
+  }
+  throw new Error("无法从任何可用 CDN 加载 MediaPipe Hands，请检查网络连接。");
+}
+
+async function initHands(cdnBase) {
+  loadingText.textContent = "正在初始化手部追踪模型…";
+
+  hands = new window.Hands({
+    locateFile: (file) => cdnBase + file
+  });
+
+  hands.setOptions({
+    maxNumHands: 2,
+    modelComplexity: 1,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+  });
+
+  hands.onResults((results) => {
+    if (!modelReady && results) {
+      modelReady = true;
+      loadingOverlay.style.display = "none";
+      hud.style.display = "flex";
+      hudTip.style.display = "block";
+    }
+    latestResults = results;
+  });
+}
+
+// ======================== Webcam ========================
+async function initWebcam() {
+  loadingText.textContent = "正在请求摄像头权限…";
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: "user" },
+    audio: false
+  });
+  video.srcObject = stream;
+
+  await new Promise((resolve) => {
+    if (video.readyState >= 2) resolve();
+    else video.addEventListener("loadeddata", resolve, { once: true });
+  });
+
+  await video.play();
+
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  fitCanvas();
+}
+
+function fitCanvas() {
+  const aspect = canvas.width / canvas.height;
+  const winAspect = window.innerWidth / window.innerHeight;
+  let w, h;
+  if (winAspect > aspect) { h = window.innerHeight; w = h * aspect; }
+  else { w = window.innerWidth; h = w / aspect; }
+  canvas.style.width = w + "px";
+  canvas.style.height = h + "px";
+}
+window.addEventListener("resize", fitCanvas);
+
+// ======================== Gesture Detection ========================
+function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+
+function getFingerStates(lm) {
+  const w = lm[0];
+  const ext = (tip, pip) => dist(lm[tip], w) > dist(lm[pip], w) * 1.05;
+  return {
+    index:  ext(8, 6),
+    middle: ext(12, 10),
+    ring:   ext(16, 14),
+    pinky:  ext(20, 18),
+  };
+}
+
+function isSpiderMan(lm) {
+  const f = getFingerStates(lm);
+  return f.index && !f.middle && !f.ring && f.pinky;
+}
+
+// ======================== Web Class ========================
+class Web {
+  constructor(sx, sy, ex, ey, now) {
+    this.sx = sx; this.sy = sy;
+    this.ex = ex; this.ey = ey;
+    this.totalDist = Math.hypot(ex - sx, ey - sy);
+    this.curDist = 0;
+    this.state = "shooting";
+    this.attachedAt = 0;
+    this.splatR = 0;
+    this.maxSplatR = 38 + Math.random() * 28;
+    this.alpha = 1;
+    this.numLines = 9 + Math.floor(Math.random() * 4);
+    this.lineLens = Array.from({length: this.numLines}, () => 0.65 + Math.random() * 0.35);
+    this.angleOffset = Math.random() * Math.PI;
+  }
+
+  update(now, dt) {
+    if (this.state === "shooting") {
+      this.curDist += WEB_SPEED * dt;
+      if (this.curDist >= this.totalDist) {
+        this.curDist = this.totalDist;
+        this.state = "attached";
+        this.attachedAt = now;
+      }
+    } else if (this.state === "attached") {
+      this.splatR += (this.maxSplatR - this.splatR) * 0.18;
+      if (now - this.attachedAt > WEB_ATTACH_DURATION) this.state = "fading";
+    } else {
+      this.alpha -= WEB_FADE_RATE;
+    }
+  }
+
+  draw(ctx, now) {
+    const ratio = this.totalDist > 0 ? this.curDist / this.totalDist : 1;
+    const cx = this.sx + (this.ex - this.sx) * ratio;
+    const cy = this.sy + (this.ey - this.sy) * ratio;
+
+    ctx.globalAlpha = Math.max(0, this.alpha);
+
+    ctx.strokeStyle = "rgba(245, 248, 255, 0.88)";
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = "round";
+    ctx.shadowColor = "rgba(120, 170, 255, 0.5)";
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.moveTo(this.sx, this.sy);
+    ctx.lineTo(cx, cy);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    const numNodes = Math.floor(this.curDist / 35);
+    for (let i = 1; i <= numNodes; i++) {
+      const t = i / (numNodes + 1);
+      const nx = this.sx + (cx - this.sx) * t;
+      const ny = this.sy + (cy - this.sy) * t;
+      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.beginPath();
+      ctx.arc(nx, ny, 1.5, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    if ((this.state === "attached" || this.state === "fading") && this.splatR > 1) {
+      this.drawSplat(ctx, this.ex, this.ey, now);
+    }
+
+    ctx.globalAlpha = 1;
+  }
+
+  drawSplat(ctx, x, y, now) {
+    const r = this.splatR;
+    ctx.strokeStyle = "rgba(245, 248, 255, 0.7)";
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = "rgba(120, 170, 255, 0.3)";
+    ctx.shadowBlur = 4;
+
+    for (let i = 0; i < this.numLines; i++) {
+      const a = (i / this.numLines) * Math.PI * 2 + this.angleOffset;
+      const len = r * this.lineLens[i];
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len);
+      ctx.stroke();
+    }
+
+    for (let f = 0.3; f <= 1; f += 0.28) {
+      ctx.beginPath();
+      ctx.arc(x, y, r * f, 0, Math.PI * 2);
+      ctx.stroke();
+    }
+
+    ctx.fillStyle = "rgba(255,255,255,0.6)";
+    ctx.beginPath();
+    ctx.arc(x, y, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+  }
+
+  get dead() { return this.alpha <= 0; }
+}
+
+// ======================== Particles ========================
+class Particle {
+  constructor(x, y, angle, speed) {
+    this.x = x; this.y = y;
+    this.vx = Math.cos(angle) * speed;
+    this.vy = Math.sin(angle) * speed;
+    this.life = 1;
+    this.size = 2 + Math.random() * 2;
+  }
+  update(dt) {
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.vx *= 0.92; this.vy *= 0.92;
+    this.life -= 0.04;
+  }
+  draw(ctx) {
+    if (this.life <= 0) return;
+    ctx.globalAlpha = this.life;
+    ctx.fillStyle = "rgba(220, 235, 255, 0.9)";
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+  }
+  get dead() { return this.life <= 0; }
+}
+
+// ======================== THWIP Text ========================
+class ThwipText {
+  constructor(x, y) {
+    this.x = x; this.y = y;
+    this.life = 1;
+    this.scale = 0.3;
+    this.vy = -1.5;
+  }
+  update() {
+    this.scale += (1.2 - this.scale) * 0.2;
+    this.y += this.vy;
+    this.vy *= 0.95;
+    this.life -= 0.025;
+  }
+  draw(ctx) {
+    if (this.life <= 0) return;
+    ctx.save();
+    ctx.globalAlpha = this.life;
+    ctx.translate(this.x, this.y);
+    ctx.scale(this.scale, this.scale);
+    ctx.font = "bold 32px -apple-system, Helvetica, Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillStyle = "#e8483a";
+    ctx.shadowColor = "rgba(232,72,58,0.6)";
+    ctx.shadowBlur = 12;
+    ctx.fillText("THWIP!", 0, 0);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  }
+  get dead() { return this.life <= 0; }
+}
+
+// ======================== Shoot Web ========================
+function shootWeb(lm, handedness, now) {
+  if (now - (lastWebTime[handedness] || 0) < COOLDOWN) return;
+  lastWebTime[handedness] = now;
+
+  const sx = (1 - lm[0].x) * canvas.width;
+  const sy = lm[0].y * canvas.height;
+
+  const mx = (1 - lm[9].x) * canvas.width;
+  const my = lm[9].y * canvas.height;
+  let dx = mx - sx, dy = my - sy;
+  const len = Math.hypot(dx, dy);
+  if (len < 0.001) { dx = 0; dy = -1; }
+  else { dx /= len; dy /= len; }
+
+  const ex = rayBoxExit(sx, sy, dx, dy, canvas.width, canvas.height);
+  webs.push(new Web(sx, sy, ex.x, ex.y, now));
+
+  for (let i = 0; i < 8; i++) {
+    const a = Math.atan2(dy, dx) + (Math.random() - 0.5) * 1.2;
+    particles.push(new Particle(sx, sy, a, 80 + Math.random() * 120));
+  }
+
+  thwips.push(new ThwipText(sx, sy - 30));
+  playThwip();
+  webCount++;
+  webCountEl.textContent = webCount;
+}
+
+function rayBoxExit(x, y, dx, dy, w, h) {
+  let tMax = Infinity;
+  if (dx > 0.0001) tMax = Math.min(tMax, (w - x) / dx);
+  else if (dx < -0.0001) tMax = Math.min(tMax, -x / dx);
+  if (dy > 0.0001) tMax = Math.min(tMax, (h - y) / dy);
+  else if (dy < -0.0001) tMax = Math.min(tMax, -y / dy);
+  if (tMax === Infinity) tMax = 100;
+  return { x: x + dx * tMax, y: y + dy * tMax };
+}
+
+// ======================== Draw Hand Skeleton ========================
+function drawHand(lm, isGesture) {
+  const toPx = (p) => ({ x: (1 - p.x) * canvas.width, y: p.y * canvas.height });
+
+  const color = isGesture ? "#e8483a" : "rgba(120, 200, 255, 0.85)";
+  const glow = isGesture ? "rgba(232,72,58,0.6)" : "rgba(80,150,255,0.4)";
+  const nodeColor = isGesture ? "#ff6b5a" : "rgba(180, 220, 255, 0.95)";
+
+  ctx.strokeStyle = color;
+  ctx.lineWidth = isGesture ? 3.5 : 2.5;
+  ctx.lineCap = "round";
+  ctx.shadowColor = glow;
+  ctx.shadowBlur = isGesture ? 14 : 6;
+
+  for (const [a, b] of HAND_CONNECTIONS) {
+    const pa = toPx(lm[a]); const pb = toPx(lm[b]);
+    ctx.beginPath();
+    ctx.moveTo(pa.x, pa.y);
+    ctx.lineTo(pb.x, pb.y);
+    ctx.stroke();
+  }
+
+  ctx.shadowBlur = 8;
+  ctx.fillStyle = nodeColor;
+  for (let i = 0; i < lm.length; i++) {
+    const p = toPx(lm[i]);
+    const r = (i === 0) ? 5 : (i % 4 === 0) ? 4 : 2.5;
+    ctx.beginPath();
+    ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  ctx.shadowBlur = 0;
+
+  if (isGesture) {
+    const w = toPx(lm[0]);
+    const pulse = 18 + Math.sin(performance.now() * 0.012) * 6;
+    ctx.strokeStyle = "rgba(232,72,58,0.5)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(w.x, w.y, pulse, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+}
+
+// ======================== Vignette ========================
+function drawVignette() {
+  const g = ctx.createRadialGradient(
+    canvas.width/2, canvas.height/2, canvas.height * 0.3,
+    canvas.width/2, canvas.height/2, canvas.height * 0.75
+  );
+  g.addColorStop(0, "rgba(0,0,0,0)");
+  g.addColorStop(1, "rgba(0,0,0,0.5)");
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+// ======================== Main Loop ========================
+let lastFrameTime = performance.now();
+
+function loop() {
+  if (!running) return;
+  requestAnimationFrame(loop);
+
+  const now = performance.now();
+  const dt = Math.min((now - lastFrameTime) / 1000, 0.05);
+  lastFrameTime = now;
+
+  // Draw video (mirrored)
+  ctx.save();
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, -canvas.width, 0, canvas.width, canvas.height);
+  ctx.restore();
+
+  drawVignette();
+
+  // Trigger hand tracking
+  if (hands) {
+    try { hands.send({ image: video }); }
+    catch (e) { console.warn("Hands send failed:", e); }
+  }
+
+  let gestureActive = false;
+
+  if (latestResults && latestResults.multiHandLandmarks) {
+    for (let i = 0; i < latestResults.multiHandLandmarks.length; i++) {
+      const lm = latestResults.multiHandLandmarks[i];
+      const handed = latestResults.multiHandedness[i].label; // "Left" / "Right"
+      const gesture = isSpiderMan(lm);
+      if (gesture) {
+        gestureActive = true;
+        shootWeb(lm, handed, now);
+      }
+      if (showSkeleton) drawHand(lm, gesture);
+    }
+  }
+
+  for (let i = webs.length - 1; i >= 0; i--) {
+    webs[i].update(now, dt);
+    webs[i].draw(ctx, now);
+    if (webs[i].dead) webs.splice(i, 1);
+  }
+
+  for (let i = particles.length - 1; i >= 0; i--) {
+    particles[i].update(dt);
+    particles[i].draw(ctx);
+    if (particles[i].dead) particles.splice(i, 1);
+  }
+
+  for (let i = thwips.length - 1; i >= 0; i--) {
+    thwips[i].update();
+    thwips[i].draw(ctx);
+    if (thwips[i].dead) thwips.splice(i, 1);
+  }
+
+  if (gestureActive) {
+    gestureDot.classList.add("active");
+    gestureText.textContent = "蛛网射击中！";
+  } else {
+    gestureDot.classList.remove("active");
+    gestureText.textContent = "等待手势…";
+  }
+}
+
+// ======================== Error Handling ========================
+function showError(title, desc) {
+  loadingOverlay.style.display = "none";
+  errorOverlay.style.display = "flex";
+  errorTitle.textContent = title;
+  errorDesc.innerHTML = desc;
+}
+
+reloadBtn.addEventListener("click", () => location.reload());
+
+// ======================== Auto Start ========================
+async function autoStart() {
+  if (window.location.protocol === "file:") {
+    showError(
+      "请通过本地服务器打开",
+      "直接双击文件打开会因为浏览器的安全限制导致脚本加载失败。<br>请在终端运行：<br><code>python3 -m http.server 8765</code><br><code>cd /Users/wjs/Desktop/aiGame</code><br>然后访问：<br><code>http://localhost:8765/spider-web-shooter.html</code>"
+    );
+    return;
+  }
+
+  let timeoutId;
+  try {
+    const timeoutPromise = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => reject(new Error("加载超时，可能是网络无法访问模型文件。")), INIT_TIMEOUT);
+    });
+
+    const cdnBase = await Promise.race([loadMediaPipeHands(), timeoutPromise]);
+    await Promise.race([initHands(cdnBase), timeoutPromise]);
+    await Promise.race([initWebcam(), timeoutPromise]);
+
+    clearTimeout(timeoutId);
+
+    // The model keeps downloading on the first frames. Keep spinner until results arrive.
+    running = true;
+    lastFrameTime = performance.now();
+    loop();
+
+    // Separate safety timeout: if model never becomes ready, show error.
+    timeoutId = setTimeout(() => {
+      if (!modelReady) {
+        running = false;
+        showError("模型加载超时", "手部追踪模型下载超时，可能是当前网络无法访问 CDN。请检查网络或开启代理后刷新页面。");
+      }
+    }, INIT_TIMEOUT);
+  } catch (err) {
+    clearTimeout(timeoutId);
+    console.error(err);
+    if (err.name === "NotAllowedError" || err.name === "PermissionDeniedError") {
+      showError("摄像头权限被拒绝", "请在浏览器地址栏点击摄像头图标，允许摄像头权限后刷新页面重试。");
+    } else if (err.name === "NotFoundError") {
+      showError("未检测到摄像头", "请确认设备已连接摄像头，且没有被其他程序占用。");
+    } else if (err.name === "SecurityError") {
+      showError("安全限制", "本页面必须通过 http:// 或 https:// 协议访问，不能直接用 file:// 打开。");
+    } else if (err.message && err.message.includes("超时")) {
+      showError("模型加载超时", "手部追踪模型下载超时，可能是当前网络无法访问 CDN。请检查网络或开启代理后刷新页面。");
+    } else if (err.message && (err.message.includes("CDN") || err.message.includes("加载"))) {
+      showError("库加载失败", "无法加载 MediaPipe Hands，请检查网络连接后刷新页面重试。");
+    } else {
+      showError("初始化失败", err.message || "未知错误，请刷新页面重试。");
+    }
+  }
+}
+
+window.addEventListener("DOMContentLoaded", autoStart);
+
+// Keyboard
+window.addEventListener("keydown", (e) => {
+  if (e.key === "h" || e.key === "H") showSkeleton = !showSkeleton;
+});
+</script>
+</body>
+</html>
