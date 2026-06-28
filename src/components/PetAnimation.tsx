@@ -55,7 +55,7 @@ export const PetAnimation = () => {
     >
       <div className="relative">
         <img
-          src="/pets/toothless.svg"
+          src="/pets/toothless.png"
           alt="萌宠"
           className="w-32 md:w-40 lg:w-48 drop-shadow-2xl"
           style={{
