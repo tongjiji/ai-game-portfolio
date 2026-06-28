@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { AuthGuard } from './components/AuthGuard';
+import { PetAnimation } from './components/PetAnimation';
 import { Home } from './pages/Home';
 import { Portfolio } from './pages/Portfolio';
 import { PortfolioDetail } from './pages/PortfolioDetail';
@@ -21,6 +22,7 @@ function App() {
               <Navbar />
               <Home />
               <Footer />
+              <PetAnimation />
             </>
           }
         />
@@ -31,6 +33,7 @@ function App() {
               <Navbar />
               <Portfolio />
               <Footer />
+              <PetAnimation />
             </>
           }
         />
@@ -41,6 +44,7 @@ function App() {
               <Navbar />
               <PortfolioDetail />
               <Footer />
+              <PetAnimation />
             </>
           }
         />
@@ -50,6 +54,7 @@ function App() {
             <>
               <Navbar />
               <About />
+              <PetAnimation />
             </>
           }
         />
