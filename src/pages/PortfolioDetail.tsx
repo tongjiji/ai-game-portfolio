@@ -12,7 +12,7 @@ export const PortfolioDetail = () => {
 
   useEffect(() => {
     api.works.get(id || '').then((data) => {
-      setWork(data);
+      setWork(data as any);
       setLoading(false);
     }).catch(() => {
       const localWork = works.find((w) => w.id === id);

@@ -13,7 +13,7 @@ export const Portfolio = () => {
 
   useEffect(() => {
     api.works.get().then((data) => {
-      setWorks(data);
+      setWorks(data as any);
       setLoading(false);
     }).catch(() => {
       setLoading(false);
