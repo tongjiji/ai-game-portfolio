@@ -212,7 +212,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           education: education || [],
           projects: projects || [],
           demos: demos || [],
-          contact: contact || {},
+          contact: {
+            ...(contact || {}),
+            social: (contact?.socialLinks as any) || [],
+          },
         });
       }
 
@@ -230,7 +233,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         education: education || [],
         projects: projects || [],
         demos: demos || [],
-        contact: contact || {},
+        contact: {
+          ...(contact || {}),
+          social: (contact?.socialLinks as any) || [],
+        },
       });
     } else if (req.method === 'PUT') {
       const { skills, experience, education, projects, demos, contact, createdAt, updatedAt, ...profileData } = req.body;
@@ -339,7 +345,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
 
       if (contact) {
-        const { createdAt: _, updatedAt: __, ...contactData } = contact;
+        const { createdAt: _, updatedAt: __, social, ...contactData } = contact;
         await supabase
           .from('contact')
           .upsert({
@@ -347,6 +353,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             email: contactData.email,
             phone: contactData.phone,
             location: contactData.location,
+            socialLinks: social || [],
           });
       }
 

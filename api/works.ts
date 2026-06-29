@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { data: works, error } = await supabase
           .from('works')
           .select('*')
-          .order('createdAt', { ascending: false });
+          .order('createdat', { ascending: false });
 
         if (error) {
           console.error('Works query error:', error);
@@ -32,11 +32,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         res.status(200).json(works);
       }
     } else if (req.method === 'POST') {
+      const { createdAt, updatedAt, ...workData } = req.body;
       const newWork = {
-        ...req.body,
-        id: req.body.id || Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        ...workData,
+        id: workData.id || Date.now().toString(),
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString(),
       };
 
       const { data: work, error } = await supabase
@@ -54,11 +55,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     } else if (req.method === 'PUT') {
       const id = req.query.id as string;
 
+      const { createdAt, updatedAt, ...updateData } = req.body;
       const { error } = await supabase
         .from('works')
         .update({
-          ...req.body,
-          updatedAt: new Date().toISOString(),
+          ...updateData,
+          updatedat: new Date().toISOString(),
         })
         .eq('id', id);
 
