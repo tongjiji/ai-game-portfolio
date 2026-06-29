@@ -233,7 +233,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         contact: contact || {},
       });
     } else if (req.method === 'PUT') {
-      const { skills, experience, education, projects, demos, contact, ...profileData } = req.body;
+      const { skills, experience, education, projects, demos, contact, createdAt, updatedAt, ...profileData } = req.body;
 
       const { error: profileError } = await supabase
         .from('profile')
@@ -259,11 +259,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
         
         for (const skill of skills) {
+          const { createdAt: _, updatedAt: __, ...skillData } = skill;
           await supabase
             .from('skills')
             .upsert({
-              name: skill.name,
-              category: skill.category,
+              name: skillData.name,
+              category: skillData.category,
             });
         }
       }
@@ -272,15 +273,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await supabase.from('experiences').delete();
         
         for (const exp of experience) {
+          const { createdAt: _, updatedAt: __, ...expData } = exp;
           await supabase
             .from('experiences')
             .insert({
-              id: exp.id || Date.now().toString(),
-              company: exp.company,
-              role: exp.role,
-              period: exp.period,
-              description: exp.description,
-              achievements: exp.achievements || [],
+              id: expData.id || Date.now().toString(),
+              company: expData.company,
+              role: expData.role,
+              period: expData.period,
+              description: expData.description,
+              achievements: expData.achievements || [],
             });
         }
       }
@@ -289,14 +291,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await supabase.from('education').delete();
         
         for (const edu of education) {
+          const { createdAt: _, updatedAt: __, ...eduData } = edu;
           await supabase
             .from('education')
             .insert({
-              id: edu.id || Date.now().toString(),
-              school: edu.school,
-              degree: edu.degree,
-              major: edu.major,
-              period: edu.period,
+              id: eduData.id || Date.now().toString(),
+              school: eduData.school,
+              degree: eduData.degree,
+              major: eduData.major,
+              period: eduData.period,
             });
         }
       }
@@ -305,14 +308,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await supabase.from('projects').delete();
         
         for (const proj of projects) {
+          const { createdAt: _, updatedAt: __, ...projData } = proj;
           await supabase
             .from('projects')
             .insert({
-              id: proj.id || Date.now().toString(),
-              title: proj.title,
-              period: proj.period,
-              description: proj.description,
-              technologies: proj.technologies || [],
+              id: projData.id || Date.now().toString(),
+              title: projData.title,
+              period: projData.period,
+              description: projData.description,
+              technologies: projData.technologies || [],
             });
         }
       }
@@ -321,26 +325,28 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         await supabase.from('demos').delete();
         
         for (const demo of demos) {
+          const { createdAt: _, updatedAt: __, ...demoData } = demo;
           await supabase
             .from('demos')
             .insert({
-              id: demo.id || Date.now().toString(),
-              title: demo.title,
-              url: demo.url,
-              description: demo.description,
-              technologies: demo.technologies || [],
+              id: demoData.id || Date.now().toString(),
+              title: demoData.title,
+              url: demoData.url,
+              description: demoData.description,
+              technologies: demoData.technologies || [],
             });
         }
       }
 
       if (contact) {
+        const { createdAt: _, updatedAt: __, ...contactData } = contact;
         await supabase
           .from('contact')
           .upsert({
             id: 'default',
-            email: contact.email,
-            phone: contact.phone,
-            location: contact.location,
+            email: contactData.email,
+            phone: contactData.phone,
+            location: contactData.location,
           });
       }
 
