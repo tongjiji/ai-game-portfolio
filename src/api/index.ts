@@ -21,7 +21,14 @@ export const api = {
     },
     update: async (data: any) => {
       if (useSupabase && supabase) {
-        const { data: result, error } = await supabase.from('profile').update(data).eq('id', data.id || '1');
+        const allowedFields = ['id', 'name', 'title', 'slogan', 'bio', 'skills', 'experience', 'education', 'projects', 'demos', 'contact'];
+        const filteredData = Object.keys(data).reduce((acc, key) => {
+          if (allowedFields.includes(key)) {
+            acc[key] = data[key];
+          }
+          return acc;
+        }, {} as any);
+        const { data: result, error } = await supabase.from('profile').update(filteredData).eq('id', filteredData.id || '1');
         if (error) throw error;
         return result;
       }
