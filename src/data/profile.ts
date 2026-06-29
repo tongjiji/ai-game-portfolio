@@ -1,5 +1,4 @@
 export interface Profile {
-  id: string;
   name: string;
   title: string;
   slogan: string;
@@ -41,7 +40,6 @@ export interface Profile {
 }
 
 export const profile: Profile = {
-  id: '1',
   name: '童基芽',
   title: '高级前端开发工程师',
   slogan: '8年前端经验，持续探索AI辅助开发新边界',
