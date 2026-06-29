@@ -85,7 +85,7 @@ export const api = {
         }
 
         const { error } = await supabase.storage
-          .from('uploads')
+          .from('videos')
           .upload(filename, uploadFile, {
             contentType: getContentType(ext),
             upsert: true,
@@ -96,7 +96,7 @@ export const api = {
         }
 
         const { data: publicUrlData } = supabase.storage
-          .from('uploads')
+          .from('videos')
           .getPublicUrl(filename);
 
         return {
@@ -117,7 +117,7 @@ export const api = {
     delete: async (filename: string) => {
       try {
         const { error } = await supabase.storage
-          .from('uploads')
+          .from('videos')
           .remove([filename]);
 
         if (error) {
