@@ -4,6 +4,7 @@ CREATE TABLE IF NOT EXISTS profile (
   title TEXT,
   slogan TEXT,
   bio TEXT,
+  background TEXT,
   email TEXT,
   phone TEXT,
   location TEXT,
@@ -65,7 +66,7 @@ CREATE TABLE IF NOT EXISTS projects (
 
 CREATE TABLE IF NOT EXISTS demos (
   id TEXT PRIMARY KEY DEFAULT uuid_generate_v4(),
-  name TEXT,
+  title TEXT,
   url TEXT,
   description TEXT,
   technologies TEXT[],
@@ -82,3 +83,41 @@ CREATE TABLE IF NOT EXISTS contact (
   createdAt TIMESTAMP DEFAULT NOW(),
   updatedAt TIMESTAMP DEFAULT NOW()
 );
+
+ALTER TABLE IF EXISTS profile ADD COLUMN IF NOT EXISTS slogan TEXT;
+ALTER TABLE IF EXISTS profile ADD COLUMN IF NOT EXISTS background TEXT;
+ALTER TABLE IF EXISTS experiences ADD COLUMN IF NOT EXISTS achievements TEXT[];
+ALTER TABLE IF EXISTS demos ADD COLUMN IF NOT EXISTS title TEXT;
+
+DROP POLICY IF EXISTS "Allow all access to profile" ON profile;
+CREATE POLICY "Allow all access to profile" ON profile FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all access to works" ON works;
+CREATE POLICY "Allow all access to works" ON works FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all access to skills" ON skills;
+CREATE POLICY "Allow all access to skills" ON skills FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all access to experiences" ON experiences;
+CREATE POLICY "Allow all access to experiences" ON experiences FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all access to education" ON education;
+CREATE POLICY "Allow all access to education" ON education FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all access to projects" ON projects;
+CREATE POLICY "Allow all access to projects" ON projects FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all access to demos" ON demos;
+CREATE POLICY "Allow all access to demos" ON demos FOR ALL USING (true) WITH CHECK (true);
+
+DROP POLICY IF EXISTS "Allow all access to contact" ON contact;
+CREATE POLICY "Allow all access to contact" ON contact FOR ALL USING (true) WITH CHECK (true);
+
+ALTER TABLE profile ENABLE ROW LEVEL SECURITY;
+ALTER TABLE works ENABLE ROW LEVEL SECURITY;
+ALTER TABLE skills ENABLE ROW LEVEL SECURITY;
+ALTER TABLE experiences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE education ENABLE ROW LEVEL SECURITY;
+ALTER TABLE projects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE demos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contact ENABLE ROW LEVEL SECURITY;
