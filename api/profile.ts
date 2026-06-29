@@ -240,7 +240,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .upsert({
           id: 'default',
           ...profileData,
-          updatedAt: new Date().toISOString(),
         });
 
       if (profileError) {
@@ -265,7 +264,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .upsert({
               name: skill.name,
               category: skill.category,
-              updatedAt: new Date().toISOString(),
             });
         }
       }
@@ -278,9 +276,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .from('experiences')
             .insert({
               id: exp.id || Date.now().toString(),
-              ...exp,
-              createdAt: exp.createdAt || new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              company: exp.company,
+              role: exp.role,
+              period: exp.period,
+              description: exp.description,
+              achievements: exp.achievements || [],
             });
         }
       }
@@ -293,9 +293,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .from('education')
             .insert({
               id: edu.id || Date.now().toString(),
-              ...edu,
-              createdAt: edu.createdAt || new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              school: edu.school,
+              degree: edu.degree,
+              major: edu.major,
+              period: edu.period,
             });
         }
       }
@@ -308,9 +309,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .from('projects')
             .insert({
               id: proj.id || Date.now().toString(),
-              ...proj,
-              createdAt: proj.createdAt || new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              title: proj.title,
+              period: proj.period,
+              description: proj.description,
+              technologies: proj.technologies || [],
             });
         }
       }
@@ -323,9 +325,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             .from('demos')
             .insert({
               id: demo.id || Date.now().toString(),
-              ...demo,
-              createdAt: demo.createdAt || new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
+              title: demo.title,
+              url: demo.url,
+              description: demo.description,
+              technologies: demo.technologies || [],
             });
         }
       }
@@ -335,8 +338,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           .from('contact')
           .upsert({
             id: 'default',
-            ...contact,
-            updatedAt: new Date().toISOString(),
+            email: contact.email,
+            phone: contact.phone,
+            location: contact.location,
           });
       }
 
