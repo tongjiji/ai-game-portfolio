@@ -16,6 +16,7 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
   const [isComplete, setIsComplete] = useState(false);
   const [showContent, setShowContent] = useState(false);
   const [posterUrl, setPosterUrl] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const sectionRef = useRef<HTMLDivElement>(null);
   const isInViewRef = useRef(false);
@@ -27,7 +28,7 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
 
   const isPlaying = isPlayingState;
 
-  const captureLastFrame = useCallback(() => {
+  const captureFrame = useCallback((time?: number) => {
     if (videoRef.current) {
       const video = videoRef.current;
       const canvas = document.createElement('canvas');
@@ -35,6 +36,9 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
       canvas.height = video.videoHeight || 1080;
       const ctx = canvas.getContext('2d');
       if (ctx) {
+        if (time !== undefined) {
+          video.currentTime = time;
+        }
         ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
         const url = canvas.toDataURL('image/jpeg', 0.8);
         setPosterUrl(url);
@@ -51,6 +55,7 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
             if (!hasPlayed) {
               setIsPlaying(true);
               if (videoRef.current) {
+                videoRef.current.load();
                 videoRef.current.play().catch(() => {
                   setIsComplete(true);
                   setTimeout(() => setShowContent(true), 300);
@@ -60,10 +65,13 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
             }
           } else {
             isInViewRef.current = false;
+            if (videoRef.current && !isComplete) {
+              videoRef.current.pause();
+            }
           }
         });
       },
-      { threshold: 0.5 }
+      { threshold: 0.5, rootMargin: '0px 0px -10% 0px' }
     );
 
     if (sectionRef.current) {
@@ -75,8 +83,17 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
     };
   }, [hasPlayed, onPlayComplete]);
 
+  useEffect(() => {
+    if (!hasPlayed && videoRef.current) {
+      videoRef.current.onloadedmetadata = () => {
+        captureFrame(0.1);
+        setIsLoading(false);
+      };
+    }
+  }, [hasPlayed, captureFrame]);
+
   const handleVideoEnd = () => {
-    captureLastFrame();
+    captureFrame();
     setIsPlaying(false);
     setIsComplete(true);
     setTimeout(() => setShowContent(true), 300);
@@ -87,14 +104,19 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
     if (videoRef.current) {
       const video = videoRef.current;
       if (video.duration - video.currentTime < 0.5) {
-        captureLastFrame();
+        captureFrame();
       }
     }
   };
 
   const handleVideoError = () => {
+    setIsLoading(false);
     setIsComplete(true);
     setTimeout(() => setShowContent(true), 300);
+  };
+
+  const handleVideoCanPlay = () => {
+    setIsLoading(false);
   };
 
   return (
@@ -106,19 +128,33 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
     >
       <div className="absolute inset-0">
         {!isComplete ? (
-          <video
-            ref={videoRef}
-            className="w-full h-full object-cover"
-            autoPlay
-            muted
-            loop={false}
-            playsInline
-            onEnded={handleVideoEnd}
-            onTimeUpdate={handleVideoTimeUpdate}
-            onError={handleVideoError}
-          >
-            <source src={videoSrc} type="video/mp4" />
-          </video>
+          <>
+            {posterUrl && (
+              <img
+                src={posterUrl}
+                alt=""
+                className="absolute inset-0 w-full h-full object-cover transition-opacity duration-500"
+                style={{ opacity: isLoading ? 1 : 0 }}
+              />
+            )}
+            <video
+              ref={videoRef}
+              className="w-full h-full object-cover transition-opacity duration-500"
+              style={{ opacity: isLoading ? 0 : 1 }}
+              autoPlay
+              muted
+              loop={false}
+              playsInline
+              preload="metadata"
+              poster={posterUrl}
+              onEnded={handleVideoEnd}
+              onTimeUpdate={handleVideoTimeUpdate}
+              onError={handleVideoError}
+              onCanPlay={handleVideoCanPlay}
+            >
+              <source src={videoSrc} type="video/mp4" />
+            </video>
+          </>
         ) : posterUrl ? (
           <img
             src={posterUrl}
@@ -141,6 +177,15 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
         <div className="absolute inset-0 tech-grid opacity-30" />
       </div>
 
+      {isLoading && (
+        <div className="absolute inset-0 flex items-center justify-center z-20">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-16 h-16 border-4 border-tech-blue/30 border-t-tech-blue rounded-full animate-spin" />
+            <span className="text-tech-blue/80 text-sm tracking-[0.2em] uppercase">Loading...</span>
+          </div>
+        </div>
+      )}
+
       <div
         className={`relative z-10 w-full max-w-7xl mx-auto px-4 transition-all duration-1000 ${
           showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
@@ -149,7 +194,7 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
         {children}
       </div>
 
-      {showScrollIndicator && !isPlaying && (
+      {showScrollIndicator && !isPlaying && !isLoading && (
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-tech-blue/80 animate-bounce">
           <span className="text-xs tracking-[0.2em] uppercase font-semibold">SCROLL</span>
           <div className="w-6 h-10 rounded-full border-2 border-tech-blue/60 flex items-start justify-center p-2 bg-tech-dark/50">
