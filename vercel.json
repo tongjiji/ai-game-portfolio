@@ -1,6 +1,15 @@
 {
+  "functions": {
+    "api/*.ts": {
+      "runtime": "@vercel/node@5.8.22"
+    },
+    "api/uploads/*.ts": {
+      "runtime": "@vercel/node@5.8.22"
+    }
+  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/api/uploads/(.*)", "destination": "/api/uploads/[filename].ts" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
