@@ -10,72 +10,69 @@ const seedDefaultData = async () => {
   if (!supabase) return;
   
   try {
-    await supabase.from('skills').delete().neq('id', '');
-    await supabase.from('experiences').delete().neq('id', '');
-    await supabase.from('education').delete().neq('id', '');
-    await supabase.from('projects').delete().neq('id', '');
-    await supabase.from('demos').delete().neq('id', '');
-    await supabase.from('profile').delete().neq('id', '');
+    const { data: profiles } = await supabase.from('profile').select('*');
+    
+    if (!profiles || profiles.length === 0) {
+      await supabase.from('profile').insert({
+        id: '1',
+        name: defaultProfile.name,
+        title: defaultProfile.title,
+        slogan: defaultProfile.slogan,
+        bio: defaultProfile.bio,
+        background: defaultProfile.background,
+        email: defaultProfile.contact.email,
+        phone: defaultProfile.contact.phone,
+        location: defaultProfile.contact.location,
+      });
 
-    await supabase.from('profile').insert({
-      id: '1',
-      name: defaultProfile.name,
-      title: defaultProfile.title,
-      slogan: defaultProfile.slogan,
-      bio: defaultProfile.bio,
-      background: defaultProfile.background,
-      email: defaultProfile.contact.email,
-      phone: defaultProfile.contact.phone,
-      location: defaultProfile.contact.location,
-    });
+      if (defaultProfile.skills.length > 0) {
+        await supabase.from('skills').insert(defaultProfile.skills.map((s, i) => ({
+          id: `skill_${i}`,
+          name: s.name,
+          category: s.category,
+        })));
+      }
 
-    if (defaultProfile.skills.length > 0) {
-      await supabase.from('skills').insert(defaultProfile.skills.map((s, i) => ({
-        id: `skill_${i}`,
-        name: s.name,
-        category: s.category,
-      })));
-    }
+      if (defaultProfile.experience.length > 0) {
+        await supabase.from('experiences').insert(defaultProfile.experience.map((e, i) => ({
+          id: `exp_${i}`,
+          company: e.company,
+          role: e.role,
+          period: e.period,
+          description: e.description,
+          achievements: e.achievements,
+        })));
+      }
 
-    if (defaultProfile.experience.length > 0) {
-      await supabase.from('experiences').insert(defaultProfile.experience.map((e, i) => ({
-        id: `exp_${i}`,
-        company: e.company,
-        role: e.role,
-        period: e.period,
-        description: e.description,
-        achievements: e.achievements,
-      })));
-    }
+      if (defaultProfile.education.length > 0) {
+        await supabase.from('education').insert(defaultProfile.education.map((edu, i) => ({
+          id: `edu_${i}`,
+          school: edu.school,
+          degree: edu.degree,
+          major: edu.major,
+          period: edu.period,
+        })));
+      }
 
-    if (defaultProfile.education.length > 0) {
-      await supabase.from('education').insert(defaultProfile.education.map((edu, i) => ({
-        id: `edu_${i}`,
-        school: edu.school,
-        degree: edu.degree,
-        major: edu.major,
-        period: edu.period,
-      })));
-    }
+      if (defaultProfile.projects.length > 0) {
+        await supabase.from('projects').insert(defaultProfile.projects.map((p, i) => ({
+          id: `proj_${i}`,
+          title: p.title,
+          period: p.period,
+          description: p.description,
+          technologies: p.technologies,
+        })));
+      }
 
-    if (defaultProfile.projects.length > 0) {
-      await supabase.from('projects').insert(defaultProfile.projects.map((p, i) => ({
-        id: `proj_${i}`,
-        title: p.title,
-        period: p.period,
-        description: p.description,
-        technologies: p.technologies,
-      })));
-    }
-
-    if (defaultProfile.demos.length > 0) {
-      await supabase.from('demos').insert(defaultProfile.demos.map((d, i) => ({
-        id: `demo_${i}`,
-        name: d.title,
-        url: d.url,
-        description: d.description,
-        technologies: d.technologies,
-      })));
+      if (defaultProfile.demos.length > 0) {
+        await supabase.from('demos').insert(defaultProfile.demos.map((d, i) => ({
+          id: `demo_${i}`,
+          name: d.title,
+          url: d.url,
+          description: d.description,
+          technologies: d.technologies,
+        })));
+      }
     }
   } catch (error) {
     console.warn('Failed to seed default data:', error);
