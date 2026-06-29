@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Sparkles, Mail, MapPin, GraduationCap, Award, ChevronRight, Globe, ExternalLink, ArrowDown } from 'lucide-react';
+import { Sparkles, Mail, MapPin, GraduationCap, Award, ChevronRight, Globe, ExternalLink } from 'lucide-react';
 import { VideoBackground } from '../components/VideoBackground';
 import { api } from '../api';
 import { profile as defaultProfile } from '../data/profile';
