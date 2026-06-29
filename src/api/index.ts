@@ -1,187 +1,231 @@
-const BASE_URL = '/api';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseKey = import.meta.env.VITE_SUPABASE_KEY;
+
+const supabase = supabaseUrl && supabaseKey ? createClient(supabaseUrl, supabaseKey) : null;
 
 export const api = {
   profile: {
     get: async () => {
-      return fetch(`${BASE_URL}/profile`).then(res => res.json());
+      if (!supabase) {
+        const response = await fetch('/api/profile');
+        return response.json();
+      }
+      
+      try {
+        const { data: profiles, error } = await supabase.from('profile').select('*');
+        if (error) throw error;
+        
+        const profile = profiles?.[0] || {};
+        
+        const [skills, experience, education, projects, demos] = await Promise.all([
+          supabase.from('skills').select('*').then(res => res.data || []),
+          supabase.from('experiences').select('*').then(res => res.data || []),
+          supabase.from('education').select('*').then(res => res.data || []),
+          supabase.from('projects').select('*').then(res => res.data || []),
+          supabase.from('demos').select('*').then(res => res.data || []),
+        ]);
+        
+        return {
+          ...profile,
+          skills: skills || [],
+          experience: experience || [],
+          education: education || [],
+          projects: projects || [],
+          demos: demos || [],
+          contact: {
+            email: profile.email || '',
+            phone: profile.phone || '',
+            location: profile.location || '',
+            social: [],
+          },
+        };
+      } catch (error) {
+        console.warn('Supabase error, fallback to local:', error);
+        const response = await fetch('/api/profile');
+        return response.json();
+      }
     },
     update: async (data: any) => {
-      return fetch(`${BASE_URL}/profile`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
+      if (!supabase) {
+        const response = await fetch('/api/profile', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        return response.json();
+      }
+      
+      try {
+        const { error: profileError } = await supabase.from('profile').upsert({
+          id: '1',
+          name: data.name,
+          title: data.title,
+          slogan: data.slogan,
+          bio: data.bio,
+          background: data.background,
+          email: data.contact?.email || '',
+          phone: data.contact?.phone || '',
+          location: data.contact?.location || '',
+        }, { onConflict: 'id' });
+        
+        if (profileError) throw profileError;
+        
+        await supabase.from('skills').delete().neq('id', '');
+        if (data.skills && data.skills.length > 0) {
+          await supabase.from('skills').insert(data.skills.map((s: any, i: number) => ({
+            id: `skill_${i}`,
+            name: s.name,
+            category: s.category,
+          })));
+        }
+        
+        await supabase.from('experiences').delete().neq('id', '');
+        if (data.experience && data.experience.length > 0) {
+          await supabase.from('experiences').insert(data.experience.map((e: any, i: number) => ({
+            id: `exp_${i}`,
+            company: e.company,
+            role: e.role,
+            period: e.period,
+            description: e.description,
+            achievements: e.achievements,
+          })));
+        }
+        
+        await supabase.from('education').delete().neq('id', '');
+        if (data.education && data.education.length > 0) {
+          await supabase.from('education').insert(data.education.map((edu: any, i: number) => ({
+            id: `edu_${i}`,
+            school: edu.school,
+            degree: edu.degree,
+            major: edu.major,
+            period: edu.period,
+          })));
+        }
+        
+        await supabase.from('projects').delete().neq('id', '');
+        if (data.projects && data.projects.length > 0) {
+          await supabase.from('projects').insert(data.projects.map((p: any, i: number) => ({
+            id: `proj_${i}`,
+            title: p.title,
+            period: p.period,
+            description: p.description,
+            technologies: p.technologies,
+          })));
+        }
+        
+        await supabase.from('demos').delete().neq('id', '');
+        if (data.demos && data.demos.length > 0) {
+          await supabase.from('demos').insert(data.demos.map((d: any, i: number) => ({
+            id: `demo_${i}`,
+            name: d.title,
+            url: d.url,
+            description: d.description,
+            technologies: d.technologies,
+          })));
+        }
+        
+        return { success: true, message: '个人信息更新成功' };
+      } catch (error) {
+        console.error('Supabase update error:', error);
+        throw error;
+      }
     },
   },
   works: {
     get: async (id?: string) => {
-      return fetch(`${BASE_URL}/works${id ? '/' + id : ''}`).then(res => res.json());
+      if (!supabase) {
+        const response = await fetch(`/api/works${id ? '/' + id : ''}`);
+        return response.json();
+      }
+      
+      try {
+        if (id) {
+          const { data, error } = await supabase.from('works').select('*').eq('id', id).single();
+          if (error) throw error;
+          return data;
+        }
+        const { data, error } = await supabase.from('works').select('*');
+        if (error) throw error;
+        return data;
+      } catch (error) {
+        const response = await fetch(`/api/works${id ? '/' + id : ''}`);
+        return response.json();
+      }
     },
     create: async (data: any) => {
-      return fetch(`${BASE_URL}/works`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
+      if (!supabase) {
+        const response = await fetch('/api/works', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        return response.json();
+      }
+      
+      try {
+        const { data: result, error } = await supabase.from('works').insert([{
+          ...data,
+          id: data.id || Date.now().toString(),
+          createdAt: data.createdAt || new Date().toISOString().split('T')[0],
+        }]);
+        if (error) throw error;
+        return { success: true, message: '作品添加成功', data: result?.[0] };
+      } catch (error) {
+        throw error;
+      }
     },
     update: async (id: string, data: any) => {
-      return fetch(`${BASE_URL}/works/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
+      if (!supabase) {
+        const response = await fetch(`/api/works/${id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        return response.json();
+      }
+      
+      try {
+        const { error } = await supabase.from('works').update(data).eq('id', id);
+        if (error) throw error;
+        return { success: true, message: '作品更新成功' };
+      } catch (error) {
+        throw error;
+      }
     },
     delete: async (id: string) => {
-      return fetch(`${BASE_URL}/works/${id}`, {
-        method: 'DELETE',
-      }).then(res => res.json());
-    },
-  },
-  skills: {
-    get: async () => {
-      return fetch(`${BASE_URL}/skills`).then(res => res.json());
-    },
-    create: async (data: any) => {
-      return fetch(`${BASE_URL}/skills`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    update: async (name: string, data: any) => {
-      return fetch(`${BASE_URL}/skills/${name}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    delete: async (name: string) => {
-      return fetch(`${BASE_URL}/skills/${name}`, {
-        method: 'DELETE',
-      }).then(res => res.json());
-    },
-  },
-  experiences: {
-    get: async () => {
-      return fetch(`${BASE_URL}/experiences`).then(res => res.json());
-    },
-    create: async (data: any) => {
-      return fetch(`${BASE_URL}/experiences`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    update: async (company: string, data: any) => {
-      return fetch(`${BASE_URL}/experiences/${company}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    delete: async (company: string) => {
-      return fetch(`${BASE_URL}/experiences/${company}`, {
-        method: 'DELETE',
-      }).then(res => res.json());
-    },
-  },
-  education: {
-    get: async () => {
-      return fetch(`${BASE_URL}/education`).then(res => res.json());
-    },
-    create: async (data: any) => {
-      return fetch(`${BASE_URL}/education`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    update: async (school: string, data: any) => {
-      return fetch(`${BASE_URL}/education/${school}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    delete: async (school: string) => {
-      return fetch(`${BASE_URL}/education/${school}`, {
-        method: 'DELETE',
-      }).then(res => res.json());
-    },
-  },
-  projects: {
-    get: async () => {
-      return fetch(`${BASE_URL}/projects`).then(res => res.json());
-    },
-    create: async (data: any) => {
-      return fetch(`${BASE_URL}/projects`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    update: async (title: string, data: any) => {
-      return fetch(`${BASE_URL}/projects/${title}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    delete: async (title: string) => {
-      return fetch(`${BASE_URL}/projects/${title}`, {
-        method: 'DELETE',
-      }).then(res => res.json());
-    },
-  },
-  demos: {
-    get: async () => {
-      return fetch(`${BASE_URL}/demos`).then(res => res.json());
-    },
-    create: async (data: any) => {
-      return fetch(`${BASE_URL}/demos`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    update: async (name: string, data: any) => {
-      return fetch(`${BASE_URL}/demos/${name}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
-    },
-    delete: async (name: string) => {
-      return fetch(`${BASE_URL}/demos/${name}`, {
-        method: 'DELETE',
-      }).then(res => res.json());
-    },
-  },
-  contact: {
-    get: async () => {
-      return fetch(`${BASE_URL}/contact`).then(res => res.json());
-    },
-    update: async (data: any) => {
-      return fetch(`${BASE_URL}/contact`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      }).then(res => res.json());
+      if (!supabase) {
+        const response = await fetch(`/api/works/${id}`, {
+          method: 'DELETE',
+        });
+        return response.json();
+      }
+      
+      try {
+        const { error } = await supabase.from('works').delete().eq('id', id);
+        if (error) throw error;
+        return { success: true, message: '作品删除成功' };
+      } catch (error) {
+        throw error;
+      }
     },
   },
   upload: {
     single: async (file: File) => {
       const formData = new FormData();
       formData.append('file', file);
-      return fetch(`${BASE_URL}/upload`, {
+      const response = await fetch('/api/upload', {
         method: 'POST',
         body: formData,
-      }).then(res => res.json());
+      });
+      return response.json();
     },
     delete: async (filename: string) => {
-      return fetch(`${BASE_URL}/uploads/${filename}`, {
+      const response = await fetch(`/api/uploads/${filename}`, {
         method: 'DELETE',
-      }).then(res => res.json());
+      });
+      return response.json();
     },
   },
 };
