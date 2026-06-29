@@ -1,9 +1,26 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { supabase } from './supabase';
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || 'https://qidxycrdtxrdaxulyqey.supabase.co';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_KEY || 'sb_publishable_3mU9pl05MkYfRUsOgig2UA_SxrHVSEh';
+
+const supabase = createClient(supabaseUrl, supabaseKey, {
+  auth: {
+    autoRefreshToken: false,
+    persistSession: false,
+  },
+});
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === 'GET') {
+      console.log('Profile GET - Environment check:', {
+        hasSUPABASE_URL: !!process.env.SUPABASE_URL,
+        hasSUPABASE_SERVICE_ROLE_KEY: !!process.env.SUPABASE_SERVICE_ROLE_KEY,
+        hasVITE_SUPABASE_URL: !!process.env.VITE_SUPABASE_URL,
+        supabaseUrl,
+      });
+
       const { data: profile, error: profileError } = await supabase
         .from('profile')
         .select('*')
@@ -12,34 +29,31 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (profileError) {
         console.error('Profile query error:', profileError);
-        return res.status(500).json({ success: false, message: '获取个人信息失败' });
+        if (profileError.code === 'PGRST116' || profileError.message?.includes('not found')) {
+          const { data: newProfile } = await supabase
+            .from('profile')
+            .insert({ id: 'default' })
+            .select()
+            .single();
+          return res.status(200).json({
+            ...newProfile,
+            skills: [],
+            experience: [],
+            education: [],
+            projects: [],
+            demos: [],
+            contact: {},
+          });
+        }
+        return res.status(500).json({ success: false, message: '获取个人信息失败', error: profileError.message });
       }
 
-      const { data: skills, error: skillsError } = await supabase
-        .from('skills')
-        .select('*');
-
-      const { data: experiences, error: experiencesError } = await supabase
-        .from('experiences')
-        .select('*');
-
-      const { data: education, error: educationError } = await supabase
-        .from('education')
-        .select('*');
-
-      const { data: projects, error: projectsError } = await supabase
-        .from('projects')
-        .select('*');
-
-      const { data: demos, error: demosError } = await supabase
-        .from('demos')
-        .select('*');
-
-      const { data: contact, error: contactError } = await supabase
-        .from('contact')
-        .select('*')
-        .eq('id', 'default')
-        .single();
+      const { data: skills } = await supabase.from('skills').select('*');
+      const { data: experiences } = await supabase.from('experiences').select('*');
+      const { data: education } = await supabase.from('education').select('*');
+      const { data: projects } = await supabase.from('projects').select('*');
+      const { data: demos } = await supabase.from('demos').select('*');
+      const { data: contact } = await supabase.from('contact').select('*').eq('id', 'default').single();
 
       res.status(200).json({
         ...profile,
@@ -63,7 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (profileError) {
         console.error('Profile update error:', profileError);
-        return res.status(500).json({ success: false, message: '更新个人信息失败' });
+        return res.status(500).json({ success: false, message: '更新个人信息失败', error: profileError.message });
       }
 
       if (skills && Array.isArray(skills)) {
@@ -164,6 +178,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (error) {
     console.error('API error:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: errorMessage });
   }
 }
