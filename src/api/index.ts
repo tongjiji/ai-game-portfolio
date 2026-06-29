@@ -21,7 +21,7 @@ export const api = {
     },
     update: async (data: any) => {
       if (useSupabase && supabase) {
-        const { data: result, error } = await supabase.from('profile').upsert(data, { onConflict: 'id' });
+        const { data: result, error } = await supabase.from('profile').update(data).eq('id', data.id || '1');
         if (error) throw error;
         return result;
       }
