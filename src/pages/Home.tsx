@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Sparkles, Mail, MapPin, GraduationCap, Award, ChevronRight, Globe, ExternalLink } from 'lucide-react';
 import { VideoBackground } from '../components/VideoBackground';
 import { api } from '../api';
@@ -8,7 +8,8 @@ export const Home = () => {
   const [profile, setProfile] = useState(defaultProfile);
   const [activeTab, setActiveTab] = useState('profile');
   const [loading, setLoading] = useState(true);
-  const [playedSections, setPlayedSections] = useState<Set<string>>(new Set());
+  const [currentSection] = useState(0);
+  const [videoPlaying, setVideoPlaying] = useState(true);
 
   useEffect(() => {
     api.profile.get().then((data) => {
@@ -19,9 +20,44 @@ export const Home = () => {
     });
   }, []);
 
-  const handlePlayComplete = (sectionId: string) => {
-    setPlayedSections(prev => new Set([...prev, sectionId]));
-  };
+  useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (videoPlaying && e.deltaY > 0) {
+        e.preventDefault();
+        return;
+      }
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (videoPlaying) {
+        const touch = e.touches[0];
+        const previousTouchY = (e as any).previousTouchY || touch.clientY;
+        const deltaY = touch.clientY - previousTouchY;
+        (e as any).previousTouchY = touch.clientY;
+        
+        if (deltaY < 0) {
+          e.preventDefault();
+          return;
+        }
+      }
+    };
+
+    window.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+
+    return () => {
+      window.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [videoPlaying]);
+
+  const handlePlayComplete = useCallback(() => {
+    setVideoPlaying(false);
+  }, []);
+
+  const handleVideoStart = useCallback(() => {
+    setVideoPlaying(true);
+  }, []);
 
   const skillCategories = [...new Set(profile.skills.map((s: { category: string }) => s.category))];
 
@@ -43,7 +79,13 @@ export const Home = () => {
     <div className="min-h-screen bg-tech-dark tech-grid" style={{ scrollSnapType: 'y mandatory', overflowY: 'scroll', height: '100vh' }}>
       <div className="fixed inset-0 scanline z-50 pointer-events-none" />
 
-      <VideoBackground videoSrc="/pets/1.mp4" id="hero" hasPlayed={playedSections.has('hero')} onPlayComplete={() => handlePlayComplete('hero')}>
+      <VideoBackground 
+        videoSrc="/pets/1.mp4" 
+        id="hero" 
+        hasPlayed={currentSection > 0}
+        onPlayComplete={handlePlayComplete}
+        onPlayingChange={handleVideoStart}
+      >
         <div className="text-center px-4">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Sparkles className="w-4 h-4 text-tech-blue" />
@@ -96,7 +138,13 @@ export const Home = () => {
         </div>
       </VideoBackground>
 
-      <VideoBackground videoSrc="/pets/2.mp4" id="about" hasPlayed={playedSections.has('about')} onPlayComplete={() => handlePlayComplete('about')}>
+      <VideoBackground 
+        videoSrc="/pets/2.mp4" 
+        id="about" 
+        hasPlayed={currentSection > 1}
+        onPlayComplete={handlePlayComplete}
+        onPlayingChange={handleVideoStart}
+      >
         <div className="max-w-7xl mx-auto px-4 h-full relative">
           <div className="text-center mb-6 pt-4">
             <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">About Me</span>
@@ -251,7 +299,13 @@ export const Home = () => {
         </div>
       </VideoBackground>
 
-      <VideoBackground videoSrc="/pets/3.mp4" id="demos" hasPlayed={playedSections.has('demos')} onPlayComplete={() => handlePlayComplete('demos')}>
+      <VideoBackground 
+        videoSrc="/pets/3.mp4" 
+        id="demos" 
+        hasPlayed={currentSection > 2}
+        onPlayComplete={handlePlayComplete}
+        onPlayingChange={handleVideoStart}
+      >
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-6">
             <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">Demos</span>
@@ -313,7 +367,13 @@ export const Home = () => {
         </div>
       </VideoBackground>
 
-      <VideoBackground videoSrc="/pets/4.mp4" id="projects" hasPlayed={playedSections.has('projects')} onPlayComplete={() => handlePlayComplete('projects')}>
+      <VideoBackground 
+        videoSrc="/pets/4.mp4" 
+        id="projects" 
+        hasPlayed={currentSection > 3}
+        onPlayComplete={handlePlayComplete}
+        onPlayingChange={handleVideoStart}
+      >
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-6">
             <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">Projects</span>
@@ -350,7 +410,13 @@ export const Home = () => {
         </div>
       </VideoBackground>
 
-      <VideoBackground videoSrc="/pets/5.mp4" id="contact" hasPlayed={playedSections.has('contact')} onPlayComplete={() => handlePlayComplete('contact')}>
+      <VideoBackground 
+        videoSrc="/pets/5.mp4" 
+        id="contact" 
+        hasPlayed={currentSection > 4}
+        onPlayComplete={handlePlayComplete}
+        onPlayingChange={handleVideoStart}
+      >
         <div className="max-w-3xl mx-auto px-4 text-center">
           <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">Contact</span>
           <h2 className="text-3xl md:text-4xl font-bold mt-2 text-white text-glow-white">联系我</h2>
@@ -365,18 +431,6 @@ export const Home = () => {
               <Mail className="w-5 h-5" />
               {profile.contact.email}
             </a>
-            {/* <div className="flex gap-3">
-              {profile.contact.social.map((social: { name: string; url: string }) => (
-                <a
-                  key={social.name}
-                  href={social.url}
-                  className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-tech-blue/30 hover:text-tech-blue transition-all duration-300"
-                  title={social.name}
-                >
-                  {social.name.charAt(0)}
-                </a>
-              ))}
-            </div> */}
           </div>
         </div>
       </VideoBackground>
