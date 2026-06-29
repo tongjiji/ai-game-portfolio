@@ -23,18 +23,18 @@ export const PortfolioDetail = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-apple-gray">加载中...</div>
+      <div className="min-h-screen bg-tech-dark flex items-center justify-center">
+        <div className="text-tech-blue text-glow-blue">加载中...</div>
       </div>
     );
   }
 
   if (!work) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="min-h-screen bg-tech-dark flex items-center justify-center">
         <div className="text-center px-6">
-          <h3 className="text-xl font-semibold text-apple-black mb-2">作品不存在</h3>
-          <Link to="/portfolio" className="text-apple-blue text-sm font-medium hover:underline">
+          <h3 className="text-xl font-semibold text-white mb-2">作品不存在</h3>
+          <Link to="/portfolio" className="text-tech-blue text-sm font-medium hover:text-glow-blue">
             返回作品列表
           </Link>
         </div>
@@ -43,13 +43,13 @@ export const PortfolioDetail = () => {
   }
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-tech-dark">
       <div className="pt-24">
         <div className="max-w-5xl mx-auto px-6 md:px-8">
           <div className="flex items-center gap-4 mb-8">
             <Link
               to="/portfolio"
-              className="flex items-center gap-2 text-apple-gray hover:text-apple-black text-sm font-medium transition-colors"
+              className="flex items-center gap-2 text-white/70 hover:text-tech-blue text-sm font-medium transition-colors"
             >
               <ArrowLeft className="w-5 h-5" />
               返回作品列表
@@ -61,44 +61,44 @@ export const PortfolioDetail = () => {
           </div>
 
           <div className="flex items-center gap-3 mb-6">
-            <span className="px-4 py-1.5 bg-apple-blue text-white text-xs font-medium rounded-full">
+            <span className="px-4 py-1.5 bg-gradient-to-r from-tech-blue to-tech-purple text-white text-xs font-medium rounded-full border-glow-blue">
               {work.category}
             </span>
-            <span className="px-4 py-1.5 bg-apple-light text-apple-gray text-xs font-medium rounded-full">
+            <span className="px-4 py-1.5 glass-card text-white/80 text-xs font-medium rounded-full">
               {work.aiModel}
             </span>
-            <span className="text-xs text-apple-gray">{work.createdAt}</span>
+            <span className="text-xs text-white/40">{work.createdAt}</span>
           </div>
 
-          <h1 className="text-3xl md:text-4xl font-semibold text-apple-black mb-6">
+          <h1 className="text-3xl md:text-4xl font-semibold text-white text-glow-white mb-6">
             {work.title}
           </h1>
 
-          <p className="text-apple-gray text-base md:text-lg leading-relaxed mb-10">
+          <p className="text-white/70 text-base md:text-lg leading-relaxed mb-10">
             {work.description}
           </p>
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-8">
-              <div className="bg-apple-light rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-apple-black mb-4">创作思路</h3>
-                <p className="text-apple-gray leading-relaxed">{work.details.concept}</p>
+              <div className="glass-card rounded-xl p-6 hover:glass-card-hover transition-all duration-300">
+                <h3 className="text-lg font-semibold text-tech-blue text-glow-blue mb-4">创作思路</h3>
+                <p className="text-white/70 leading-relaxed">{work.details.concept}</p>
               </div>
 
-              <div className="bg-apple-light rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-apple-black mb-4">创作场景</h3>
-                <p className="text-apple-gray leading-relaxed">{work.details.scene}</p>
+              <div className="glass-card rounded-xl p-6 hover:glass-card-hover transition-all duration-300">
+                <h3 className="text-lg font-semibold text-tech-purple text-glow-purple mb-4">创作场景</h3>
+                <p className="text-white/70 leading-relaxed">{work.details.scene}</p>
               </div>
             </div>
 
             <div className="space-y-6">
-              <div className="bg-apple-light rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-apple-black mb-4">作品标签</h3>
+              <div className="glass-card rounded-xl p-6 hover:glass-card-hover transition-all duration-300">
+                <h3 className="text-lg font-semibold text-tech-blue mb-4">作品标签</h3>
                 <div className="flex flex-wrap gap-2">
                   {work.tags.map((tag) => (
                     <span
                       key={tag}
-                      className="px-3 py-1 bg-white text-apple-gray text-xs font-medium rounded-full border border-gray-200"
+                      className="px-3 py-1 bg-gradient-to-r from-tech-blue/20 to-tech-purple/20 text-white/90 text-xs font-medium rounded-full border border-tech-blue/30"
                     >
                       {tag}
                     </span>
@@ -106,26 +106,26 @@ export const PortfolioDetail = () => {
                 </div>
               </div>
 
-              <div className="bg-apple-light rounded-xl p-6">
-                <h3 className="text-lg font-semibold text-apple-black mb-4">使用工具</h3>
+              <div className="glass-card rounded-xl p-6 hover:glass-card-hover transition-all duration-300">
+                <h3 className="text-lg font-semibold text-tech-purple mb-4">使用工具</h3>
                 <ul className="space-y-2">
                   {work.details.tools.map((tool) => (
-                    <li key={tool} className="flex items-center gap-2 text-apple-gray text-sm">
-                      <span className="w-1.5 h-1.5 bg-apple-blue rounded-full" />
+                    <li key={tool} className="flex items-center gap-2 text-white/70 text-sm">
+                      <span className="w-1.5 h-1.5 bg-gradient-to-r from-tech-blue to-tech-purple rounded-full" />
                       {tool}
                     </li>
                   ))}
                 </ul>
               </div>
 
-              <div className="bg-apple-black rounded-xl p-6 text-white">
-                <h3 className="text-lg font-semibold mb-4">联系合作</h3>
-                <p className="text-gray-400 text-sm mb-4">
+              <div className="bg-gradient-to-br from-tech-blue/20 via-tech-purple/20 to-tech-pink/20 rounded-xl p-6 border border-tech-blue/30">
+                <h3 className="text-lg font-semibold text-white mb-4">联系合作</h3>
+                <p className="text-white/60 text-sm mb-4">
                   如果您对这个作品感兴趣，或有合作需求，请随时联系我
                 </p>
                 <a
                   href="mailto:T_58812@163.com"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-apple-blue text-white text-sm font-medium rounded-full hover:bg-apple-blue-hover transition-colors"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-blue to-tech-purple text-white text-sm font-medium rounded-full border-glow-blue hover:scale-105 transition-all duration-300"
                 >
                   发送邮件
                 </a>

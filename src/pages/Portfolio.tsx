@@ -22,8 +22,8 @@ export const Portfolio = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-white flex items-center justify-center">
-        <div className="text-apple-gray">加载中...</div>
+      <div className="min-h-screen bg-tech-dark flex items-center justify-center">
+        <div className="text-tech-blue text-glow-blue">加载中...</div>
       </div>
     );
   }
@@ -37,14 +37,14 @@ export const Portfolio = () => {
   const simpleCategories = categories.map((c) => ({ id: c.id, name: c.name }));
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-tech-dark">
       <div className="pt-24 pb-16">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           <div className="text-center">
-            <h1 className="text-4xl md:text-5xl font-semibold text-apple-black mb-4">
+            <h1 className="text-4xl md:text-5xl font-semibold text-white text-glow-white mb-4">
               作品合集
             </h1>
-            <p className="text-apple-gray max-w-xl mx-auto">
+            <p className="text-white/60 max-w-xl mx-auto">
               探索我的AI视频创作作品
             </p>
           </div>
@@ -66,8 +66,8 @@ export const Portfolio = () => {
               key={model.id}
               onClick={() => setSelectedModel(model.id)}
               className={`px-5 py-2 text-sm font-medium rounded-full transition-all duration-300 ${selectedModel === model.id
-                  ? 'bg-apple-blue text-white'
-                  : 'bg-apple-light text-apple-gray hover:bg-gray-200'
+                ? 'bg-gradient-to-r from-tech-blue to-tech-purple text-white border-glow-blue'
+                : 'glass-card text-white/70 hover:text-white hover:glass-card-hover'
                 }`}
             >
               {model.name}
@@ -76,7 +76,7 @@ export const Portfolio = () => {
         </div>
 
         <div className="flex items-center justify-between mb-8">
-          <span className="text-sm text-apple-gray">
+          <span className="text-sm text-white/60">
             共 {filteredWorks.length} 个作品
           </span>
         </div>
@@ -86,7 +86,7 @@ export const Portfolio = () => {
             {filteredWorks.map((work: typeof defaultWorks[0], index) => (
               <div
                 key={work.id}
-                className="animate-slide-up"
+                className="animate-fade-in"
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 <VideoCard work={work} />
@@ -95,8 +95,8 @@ export const Portfolio = () => {
           </div>
         ) : (
           <div className="text-center py-20">
-            <h3 className="text-xl font-semibold text-apple-black mb-2">暂无作品</h3>
-            <p className="text-apple-gray">当前筛选条件下没有找到作品</p>
+            <h3 className="text-xl font-semibold text-white mb-2">暂无作品</h3>
+            <p className="text-white/60">当前筛选条件下没有找到作品</p>
           </div>
         )}
       </div>
