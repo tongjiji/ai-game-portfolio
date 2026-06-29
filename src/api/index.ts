@@ -74,7 +74,7 @@ export const api = {
         const ext = file.name.split('.').pop();
         const filename = `${Date.now()}.${ext}`;
         
-        const { error, data } = await supabase.storage
+        const { error } = await supabase.storage
           .from('uploads')
           .upload(filename, file, {
             contentType: getContentType(ext),

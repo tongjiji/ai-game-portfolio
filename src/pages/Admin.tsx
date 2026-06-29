@@ -386,13 +386,13 @@ export const Admin = () => {
 
     try {
       const result = await api.upload.single(file);
-      if (result.success) {
+      if (result.success && result.url) {
         setUploadedFileUrl(result.url);
-        setUploadedFileName(result.originalName || result.filename);
+        setUploadedFileName(result.originalName || result.filename || '');
         setShowCreateWorkAfterUpload(true);
         setMessage(`上传成功: ${result.url}`);
       } else {
-        setMessage('上传失败');
+        setMessage(result.message || '上传失败');
       }
     } catch (error) {
       setMessage('上传失败');
