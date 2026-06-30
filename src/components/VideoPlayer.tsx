@@ -140,7 +140,7 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
               href={videoUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-tech-blue to-tech-purple border-glow-blue hover:scale-110 transition-transform duration-300 mx-auto mb-4"
+              className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-tech-blue to-tech-purple border-glow-blue hover:scale-110 transition-transform duration-300 mx-auto mb-4 cursor-pointer"
             >
               <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
             </a>
