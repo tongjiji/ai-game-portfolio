@@ -1,7 +1,4 @@
-import { createReadStream } from 'fs';
-import { join } from 'path';
-
-export default async function handler(req: { query: { url: string } }, res: { setHeader: (arg0: string, arg1: string) => void; status: (arg0: number) => void; end: (arg0?: any) => void; pipe: (arg0: any) => void }) {
+export default async function handler(req: { query: { url: string } }, res: { setHeader: (arg0: string, arg1: string) => void; status: (arg0: number) => void; end: (arg0?: any) => void }) {
   const { url } = req.query;
   
   if (!url) {
@@ -12,11 +9,7 @@ export default async function handler(req: { query: { url: string } }, res: { se
   const targetUrl = typeof url === 'string' ? url : url[0];
   
   try {
-    const response = await fetch(targetUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
-      },
-    });
+    const response = await fetch(targetUrl);
 
     if (!response.ok) {
       res.status(response.status).end('Failed to fetch video');
@@ -31,14 +24,8 @@ export default async function handler(req: { query: { url: string } }, res: { se
     res.status(response.status);
     
     if (response.body) {
-      const reader = response.body.getReader();
-      
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        res.write(value);
-      }
-      res.end();
+      const buffer = await response.arrayBuffer();
+      res.end(Buffer.from(buffer));
     } else {
       res.end();
     }
