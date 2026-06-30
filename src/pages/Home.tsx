@@ -101,7 +101,7 @@ export const Home = () => {
               })}
             </div>
           </div>
-      
+
           <div className="overflow-y-auto max-h-[calc(100vh-260px)] sm:max-h-[calc(100vh-240px)] pr-2">
             {activeTab === 'profile' && (
               <div className="space-y-4">
@@ -131,7 +131,7 @@ export const Home = () => {
                     <p className="text-white/80 text-xs sm:text-sm leading-relaxed">{profile.background}</p>
                   </div>
                 </div>
-              
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="glass-card rounded-xl p-3 sm:p-4">
                     <h3 className="text-xs sm:text-sm font-semibold text-tech-blue mb-2 flex items-center gap-2">
@@ -148,7 +148,7 @@ export const Home = () => {
                       ))}
                     </div>
                   </div>
-                  
+
                   <div className="glass-card rounded-xl p-3 sm:p-4">
                     <h3 className="text-xs sm:text-sm font-semibold text-tech-purple mb-2 flex items-center gap-2">
                       <Award className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -166,7 +166,7 @@ export const Home = () => {
                 </div>
               </div>
             )}
-              
+
             {activeTab === 'skills' && (
               <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {skillCategories.map((category) => (
@@ -186,7 +186,7 @@ export const Home = () => {
                 ))}
               </div>
             )}
-                  
+
             {activeTab === 'experience' && (
               <div className="space-y-3">
                 {profile.experience.map((exp: { company: string; role: string; period: string; description: string; achievements: string[] }, index) => (
@@ -213,18 +213,18 @@ export const Home = () => {
           </div>
         </div>
       </ImageBackground>
-                      
+
       <ImageBackground imageSrc="/pets/3.png" id="demos">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-6">
             <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">Demos</span>
             <h2 className="text-3xl md:text-4xl font-bold mt-2 text-white text-glow-white flex items-center justify-center gap-3">
               <Globe className="w-6 h-6" />
-                  个人Demo
+              个人Demo
             </h2>
             <p className="text-white/60 mt-2 max-w-xl mx-auto text-xs">自主开发的Web应用项目，展示技术能力与产品思维</p>
           </div>
-        
+
           <div className="grid grid-cols-1 gap-3 sm:gap-4">
             {profile.demos.map((demo: { title: string; url: string; description: string; technologies: string[] }, index) => (
               <div key={index} className="group glass-card rounded-2xl p-4 sm:p-5">
