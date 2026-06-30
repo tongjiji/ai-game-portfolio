@@ -102,7 +102,7 @@ export const Home = () => {
             </div>
           </div>
       
-          <div className="overflow-y-auto max-h-[calc(100vh-180px)] sm:max-h-[calc(100vh-160px)] pr-2">
+          <div className="overflow-y-auto max-h-[calc(100vh-260px)] sm:max-h-[calc(100vh-240px)] pr-2">
             {activeTab === 'profile' && (
               <div className="space-y-4">
                 <div className="glass-card rounded-2xl p-4 sm:p-5">

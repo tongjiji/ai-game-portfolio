@@ -38,11 +38,11 @@ export const Portfolio = () => {
 
   return (
     <div className="min-h-screen bg-tech-dark">
-      <div className="pt-24 pb-16">
+      <div className="pt-32 pb-20">
         <div className="max-w-7xl mx-auto px-6 md:px-8">
           <div className="text-center">
             <h1 className="text-4xl md:text-5xl font-semibold text-white text-glow-white mb-4">
-              作品合集
+              AI视频Demo
             </h1>
             <p className="text-white/60 max-w-xl mx-auto">
               探索我的AI视频创作作品
@@ -51,7 +51,7 @@ export const Portfolio = () => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 md:px-8 pb-24">
+      <div className="max-w-7xl mx-auto px-6 md:px-8 pb-32">
         <div className="mb-10">
           <CategoryFilter
             categories={simpleCategories}

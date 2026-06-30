@@ -9,17 +9,41 @@ import { formatDate } from '../utils/format';
 export const PortfolioDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [work, setWork] = useState<typeof works[0] | null>(null);
+  const [videoUrl, setVideoUrl] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    api.works.get(id || '').then((data) => {
-      setWork(data as any);
-      setLoading(false);
-    }).catch(() => {
-      const localWork = works.find((w) => w.id === id);
-      setWork(localWork || null);
-      setLoading(false);
-    });
+    const fetchWork = async () => {
+      try {
+        const data = await api.works.get(id || '');
+        const workData = data as typeof works[0];
+        setWork(workData);
+        if (workData?.videoUrl) {
+          if (workData.videoUrl.includes('thftfh6tw.hd-bkt.clouddn.com')) {
+            const key = workData.videoUrl.replace(/^https?:\/\/thftfh6tw\.hd-bkt\.clouddn\.com\//, '');
+            const signedUrl = await api.qiniu.getSignedUrl(key);
+            setVideoUrl(signedUrl);
+          } else {
+            setVideoUrl(workData.videoUrl);
+          }
+        }
+      } catch {
+        const localWork = works.find((w) => w.id === id);
+        setWork(localWork || null);
+        if (localWork?.videoUrl) {
+          if (localWork.videoUrl.includes('thftfh6tw.hd-bkt.clouddn.com')) {
+            const key = localWork.videoUrl.replace(/^https?:\/\/thftfh6tw\.hd-bkt\.clouddn\.com\//, '');
+            const signedUrl = await api.qiniu.getSignedUrl(key);
+            setVideoUrl(signedUrl);
+          } else {
+            setVideoUrl(localWork.videoUrl);
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchWork();
   }, [id]);
 
   if (loading) {
@@ -43,22 +67,22 @@ export const PortfolioDetail = () => {
     );
   }
 
+  const details = work.details || { concept: '', tools: [], scene: '' };
+  const tags = work.tags || [];
+
   return (
     <div className="min-h-screen bg-tech-dark">
       <div className="pt-24">
         <div className="max-w-5xl mx-auto px-6 md:px-8">
           <div className="flex items-center gap-4 mb-8">
-            <Link
-              to="/portfolio"
-              className="flex items-center gap-2 text-white/70 hover:text-tech-blue text-sm font-medium transition-colors"
-            >
+            <Link to="/portfolio" className="flex items-center gap-2 text-white/70 hover:text-tech-blue text-sm font-medium transition-colors">
               <ArrowLeft className="w-5 h-5" />
               返回作品列表
             </Link>
           </div>
 
           <div className="mb-10">
-            <VideoPlayer videoUrl={work.videoUrl} title={work.title} />
+            <VideoPlayer videoUrl={videoUrl || work.videoUrl} title={work.title} />
           </div>
 
           <div className="flex items-center gap-3 mb-6">
@@ -83,12 +107,12 @@ export const PortfolioDetail = () => {
             <div className="lg:col-span-2 space-y-8">
               <div className="glass-card rounded-xl p-6 hover:glass-card-hover transition-all duration-300">
                 <h3 className="text-lg font-semibold text-tech-blue text-glow-blue mb-4">创作思路</h3>
-                <p className="text-white/70 leading-relaxed">{work.details.concept}</p>
+                <p className="text-white/70 leading-relaxed">{details.concept}</p>
               </div>
 
               <div className="glass-card rounded-xl p-6 hover:glass-card-hover transition-all duration-300">
                 <h3 className="text-lg font-semibold text-tech-purple text-glow-purple mb-4">创作场景</h3>
-                <p className="text-white/70 leading-relaxed">{work.details.scene}</p>
+                <p className="text-white/70 leading-relaxed">{details.scene}</p>
               </div>
             </div>
 
@@ -96,11 +120,8 @@ export const PortfolioDetail = () => {
               <div className="glass-card rounded-xl p-6 hover:glass-card-hover transition-all duration-300">
                 <h3 className="text-lg font-semibold text-tech-blue mb-4">作品标签</h3>
                 <div className="flex flex-wrap gap-2">
-                  {work.tags.map((tag) => (
-                    <span
-                      key={tag}
-                      className="px-3 py-1 bg-gradient-to-r from-tech-blue/20 to-tech-purple/20 text-white/90 text-xs font-medium rounded-full border border-tech-blue/30"
-                    >
+                  {tags.map((tag) => (
+                    <span key={tag} className="px-3 py-1 bg-gradient-to-r from-tech-blue/20 to-tech-purple/20 text-white/90 text-xs font-medium rounded-full border border-tech-blue/30">
                       {tag}
                     </span>
                   ))}
@@ -110,7 +131,7 @@ export const PortfolioDetail = () => {
               <div className="glass-card rounded-xl p-6 hover:glass-card-hover transition-all duration-300">
                 <h3 className="text-lg font-semibold text-tech-purple mb-4">使用工具</h3>
                 <ul className="space-y-2">
-                  {work.details.tools.map((tool) => (
+                  {details.tools.map((tool) => (
                     <li key={tool} className="flex items-center gap-2 text-white/70 text-sm">
                       <span className="w-1.5 h-1.5 bg-gradient-to-r from-tech-blue to-tech-purple rounded-full" />
                       {tool}
@@ -121,13 +142,8 @@ export const PortfolioDetail = () => {
 
               <div className="bg-gradient-to-br from-tech-blue/20 via-tech-purple/20 to-tech-pink/20 rounded-xl p-6 border border-tech-blue/30">
                 <h3 className="text-lg font-semibold text-white mb-4">联系合作</h3>
-                <p className="text-white/60 text-sm mb-4">
-                  如果您对这个作品感兴趣，或有合作需求，请随时联系我
-                </p>
-                <a
-                  href="mailto:T_58812@163.com"
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-blue to-tech-purple text-white text-sm font-medium rounded-full border-glow-blue hover:scale-105 transition-all duration-300"
-                >
+                <p className="text-white/60 text-sm mb-4">如果您对这个作品感兴趣，或有合作需求，请随时联系我</p>
+                <a href="mailto:T_58812@163.com" className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-tech-blue to-tech-purple text-white text-sm font-medium rounded-full border-glow-blue hover:scale-105 transition-all duration-300">
                   发送邮件
                 </a>
               </div>
