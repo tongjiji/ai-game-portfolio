@@ -21,6 +21,8 @@ export default async function handler(request: Request): Promise<Response> {
     const headers = new Headers(response.headers);
     headers.set('access-control-allow-origin', '*');
     headers.set('cache-control', 'public, max-age=86400, immutable');
+    headers.set('content-type', 'video/mp4');
+    headers.set('content-disposition', 'inline');
     headers.delete('content-security-policy');
     headers.delete('cross-origin-resource-policy');
 
