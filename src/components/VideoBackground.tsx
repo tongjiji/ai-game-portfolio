@@ -180,16 +180,16 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-tech-dark via-tech-darker to-tech-dark" />
         )}
-        
+
         <div
           className="absolute inset-0 transition-opacity duration-500"
           style={{
-            background: isPlaying 
-              ? 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.2), rgba(0,0,0,0.4))' 
+            background: isPlaying
+              ? 'linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.2), rgba(0,0,0,0.4))'
               : 'linear-gradient(to bottom, rgba(0,0,0,0.6), rgba(0,0,0,0.4), rgba(0,0,0,0.7))',
           }}
         />
-        
+
         <div className="absolute inset-0 tech-grid opacity-30" />
       </div>
 
@@ -198,9 +198,9 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
           <div className="flex flex-col items-center gap-6">
             <div className="relative w-20 h-20">
               <div className="w-full h-full border-4 border-tech-blue/20 rounded-full" />
-              <div 
+              <div
                 className="absolute inset-0 w-full h-full border-4 border-tech-blue rounded-full animate-spin"
-                style={{ 
+                style={{
                   borderLeftColor: 'transparent',
                   borderBottomColor: 'transparent',
                   animationDuration: '1s'
@@ -211,7 +211,7 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
               </div>
             </div>
             <div className="w-48 h-1 bg-tech-dark/50 rounded-full overflow-hidden">
-              <div 
+              <div
                 className="h-full bg-gradient-to-r from-tech-blue to-tech-purple transition-all duration-300"
                 style={{ width: `${loadProgress}%` }}
               />
@@ -222,9 +222,8 @@ export const VideoBackground = ({ videoSrc, children, id, showScrollIndicator = 
       )}
 
       <div
-        className={`relative z-10 w-full max-w-7xl mx-auto px-4 transition-all duration-1000 ${
-          showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-        }`}
+        className={`relative z-10 w-full max-w-7xl mx-auto px-4 transition-all duration-1000 ${showContent ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+          }`}
       >
         {children}
       </div>

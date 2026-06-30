@@ -17,7 +17,7 @@ export const Navbar = () => {
 
   const navItems = [
     { path: '/', label: '首页' },
-    { path: '/portfolio', label: '作品合集' },
+    { path: '/portfolio', label: 'AI视频Demo' },
     { path: '/about', label: '关于我' },
   ];
 
@@ -28,7 +28,7 @@ export const Navbar = () => {
       <div className="max-w-7xl mx-auto px-6 md:px-8">
         <div className="flex items-center justify-between h-14">
           <Link to="/" className="font-medium text-sm tracking-tight text-tech-blue text-glow-blue">
-            个人介绍
+            童基芽 / JIYA TONG — Portfolio
           </Link>
 
           <div className="hidden md:flex items-center gap-8">

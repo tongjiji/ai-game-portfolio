@@ -11,7 +11,7 @@ export const ImageBackground = ({ imageSrc, children, id, showScrollIndicator = 
   return (
     <div
       id={id}
-      className="relative w-full h-screen flex items-center justify-center overflow-hidden scroll-smooth"
+      className="relative w-full min-h-screen flex flex-col justify-start overflow-hidden scroll-smooth"
       style={{ scrollSnapAlign: 'start' }}
     >
       <div className="absolute inset-0">
@@ -31,7 +31,7 @@ export const ImageBackground = ({ imageSrc, children, id, showScrollIndicator = 
         <div className="absolute inset-0 tech-grid opacity-30" />
       </div>
 
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-4">
+      <div className="relative z-10 w-full max-w-7xl mx-auto px-4 pt-20 pb-20 sm:pt-24 sm:pb-24">
         {children}
       </div>
 

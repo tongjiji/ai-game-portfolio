@@ -3,6 +3,19 @@ import { works as defaultWorks } from '../data/works';
 import { put } from '@vercel/blob';
 
 export const api = {
+  qiniu: {
+    getSignedUrl: async (key: string) => {
+      try {
+        const response = await fetch(`/api/qiniu?key=${encodeURIComponent(key)}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const data = await response.json();
+        return data.url;
+      } catch (error) {
+        console.error('Qiniu signature error:', error);
+        return `http://thftfh6tw.hd-bkt.clouddn.com/${key}`;
+      }
+    },
+  },
   profile: {
     get: async () => {
       try {
