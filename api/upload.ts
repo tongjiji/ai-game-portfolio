@@ -1,5 +1,5 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
-import { handleUpload, type HandleUploadBody } from '@vercel/blob/node';
+import { generateClientToken, type HandleUploadBody } from '@vercel/blob/node';
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   if (req.method !== 'POST') {
@@ -10,21 +10,17 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const jsonBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const body = jsonBody as HandleUploadBody;
     
-    const result = await handleUpload({
-      body,
-      request: req as any,
-      onBeforeGenerateToken: async (pathname) => {
-        return {
-          allowed: true,
-          tokenPayload: JSON.stringify({ pathname }),
-        };
-      },
-      onUploadCompleted: async ({ blob, tokenPayload }) => {
-        console.log('Upload completed:', blob.url);
-      },
-    });
+    if (body.type === 'blob.generate-client-token') {
+      const token = await generateClientToken({
+        pathname: body.payload.pathname,
+        clientPayload: body.payload.clientPayload,
+        multipart: body.payload.multipart,
+      });
+      
+      return res.status(200).json({ token });
+    }
 
-    res.status(200).json(result);
+    return res.status(400).json({ error: 'Unknown request type' });
   } catch (error) {
     console.error('Upload handler error:', error);
     res.status(500).json({ error: error instanceof Error ? error.message : 'Internal server error' });
