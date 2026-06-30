@@ -20,7 +20,7 @@ export default async function handler(req: { query: { key: string } }, res: { js
   const mac = new qiniu.auth.digest.Mac(accessKey, secretKey);
   const deadline = Math.floor(Date.now() / 1000) + 3600;
   const policy = new qiniu.rs.GetPolicy({ deadline });
-  const url = policy.makeRequest(`https://${domain}/${key}`);
+  const url = policy.makeRequest(`http://${domain}/${key}`);
 
   res.json({ url });
 }

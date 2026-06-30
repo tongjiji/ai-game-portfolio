@@ -12,7 +12,7 @@ export const api = {
         return data.url;
       } catch (error) {
         console.error('Qiniu signature error:', error);
-        return `https://thftfh6tw.hd-bkt.clouddn.com/${key}`;
+        return `http://thftfh6tw.hd-bkt.clouddn.com/${key}`;
       }
     },
   },
