@@ -62,7 +62,7 @@ export const PortfolioDetail = () => {
           </div>
 
           <div className="mb-10">
-            <VideoPlayer videoUrl={work.videoUrl} title={work.title} />
+            <VideoPlayer videoUrl={work.videoUrl?.startsWith('http://') ? `/api/video?url=${encodeURIComponent(work.videoUrl)}` : work.videoUrl} title={work.title} />
           </div>
 
           <div className="flex items-center gap-3 mb-6">
