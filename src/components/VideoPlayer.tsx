@@ -136,15 +136,14 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
       {showExternalLink ? (
         <div className="aspect-video flex flex-col items-center justify-center bg-gradient-to-br from-tech-blue/20 to-tech-purple/20">
           <div className="text-center px-6">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                window.open(videoUrl, '_blank');
-              }}
-              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-tech-blue to-tech-purple flex items-center justify-center border-glow-blue hover:scale-110 transition-transform duration-300 mx-auto mb-4"
+            <a
+              href={videoUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-tech-blue to-tech-purple border-glow-blue hover:scale-110 transition-transform duration-300 mx-auto mb-4"
             >
               <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
-            </button>
+            </a>
             <p className="text-white/80 text-sm sm:text-lg font-medium mb-2">{title}</p>
             <p className="text-white/50 text-xs sm:text-sm">点击在新窗口播放（国内加速）</p>
           </div>
