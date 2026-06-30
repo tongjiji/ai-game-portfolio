@@ -196,15 +196,15 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
         className="absolute bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-black/80 to-transparent transition-opacity duration-300"
       >
         <div
-          className="h-1.5 bg-white/20 rounded-full cursor-pointer mb-3"
+          className="h-1.5 bg-white/20 rounded-full cursor-pointer mb-3 relative"
           onClick={handleProgressClick}
         >
           <div
-            className="h-full bg-white/40 rounded-full absolute"
+            className="h-full bg-white/40 rounded-full absolute left-0 top-0"
             style={{ width: `${buffered}%` }}
           />
           <div
-            className="h-full bg-gradient-to-r from-tech-blue to-tech-purple rounded-full relative transition-all duration-100"
+            className="h-full bg-gradient-to-r from-tech-blue to-tech-purple rounded-full absolute left-0 top-0 transition-all duration-100"
             style={{ width: `${progress}%` }}
           />
           <div
