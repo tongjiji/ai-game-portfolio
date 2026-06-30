@@ -87,7 +87,7 @@ export const api = {
         };
       }
     },
-    delete: async (filename: string) => {
+    delete: async (_filename: string) => {
       try {
         return { success: true, message: '删除成功' };
       } catch (error) {
