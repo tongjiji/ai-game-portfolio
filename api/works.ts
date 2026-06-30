@@ -11,6 +11,23 @@ const supabase = createClient(supabaseUrl, supabaseKey, {
   },
 });
 
+function formatWork(work: any) {
+  if (!work) return null;
+  return {
+    id: work.id,
+    title: work.title,
+    description: work.description,
+    category: work.category,
+    aiModel: work.aimodel || work.aiModel,
+    coverUrl: work.coverurl || work.coverUrl,
+    videoUrl: work.videourl || work.videoUrl,
+    tags: work.tags || [],
+    details: work.details || { concept: '', tools: [], scene: '' },
+    createdAt: work.createdat || work.createdAt,
+    updatedAt: work.updatedat || work.updatedAt,
+  };
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method === 'GET') {
@@ -27,18 +44,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
           return res.status(404).json({ success: false, message: '作品不存在', error: error.message });
         }
 
-        res.status(200).json(work);
+        res.status(200).json(formatWork(work));
       } else {
         const { data: works, error } = await supabase
           .from('works')
-          .select('id, title, videoUrl');
+          .select('*');
 
         if (error) {
           console.error('Works query error:', error);
           return res.status(500).json({ success: false, message: '获取作品列表失败', error: error.message });
         }
 
-        res.status(200).json(works);
+        res.status(200).json((works || []).map(formatWork));
       }
     } else if (req.method === 'POST') {
       const { createdAt, updatedAt, ...workData } = req.body;
@@ -60,7 +77,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         return res.status(500).json({ success: false, message: '添加作品失败', error: error.message });
       }
 
-      res.status(200).json({ success: true, message: '作品添加成功', data: work });
+      res.status(200).json({ success: true, message: '作品添加成功', data: formatWork(work) });
     } else if (req.method === 'PUT') {
       const id = req.query.id as string;
 
