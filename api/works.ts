@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { data: works, error } = await supabase
           .from('works')
           .select('*')
-          .order('createdat', { ascending: false });
+          .order('createdAt', { ascending: false });
 
         if (error) {
           console.error('Works query error:', error);
@@ -36,8 +36,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const newWork = {
         ...workData,
         id: workData.id || Date.now().toString(),
-        createdat: new Date().toISOString(),
-        updatedat: new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
       };
 
       const { data: work, error } = await supabase
@@ -48,7 +48,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) {
         console.error('Work create error:', error);
-        return res.status(500).json({ success: false, message: '添加作品失败' });
+        return res.status(500).json({ success: false, message: '添加作品失败', error: error.message });
       }
 
       res.status(200).json({ success: true, message: '作品添加成功', data: work });
@@ -60,13 +60,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from('works')
         .update({
           ...updateData,
-          updatedat: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
         })
         .eq('id', id);
 
       if (error) {
         console.error('Work update error:', error);
-        return res.status(500).json({ success: false, message: '更新作品失败' });
+        return res.status(500).json({ success: false, message: '更新作品失败', error: error.message });
       }
 
       res.status(200).json({ success: true, message: '作品更新成功' });
@@ -80,7 +80,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
       if (error) {
         console.error('Work delete error:', error);
-        return res.status(500).json({ success: false, message: '删除作品失败' });
+        return res.status(500).json({ success: false, message: '删除作品失败', error: error.message });
       }
 
       res.status(200).json({ success: true, message: '作品删除成功' });
@@ -89,6 +89,6 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   } catch (error) {
     console.error('API error:', error);
-    res.status(500).json({ success: false, message: 'Internal Server Error' });
+    res.status(500).json({ success: false, message: 'Internal Server Error', error: error instanceof Error ? error.message : 'Unknown error' });
   }
 }
