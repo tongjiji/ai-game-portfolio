@@ -1,6 +1,5 @@
 import { profile as defaultProfile } from '../data/profile';
 import { works as defaultWorks } from '../data/works';
-import { upload } from '@vercel/blob/client';
 
 export const api = {
   profile: {
@@ -63,14 +62,38 @@ export const api = {
       try {
         const filename = `${Date.now()}-${file.name}`;
 
-        const result = await upload(filename, file, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
+        const response = await fetch('/api/upload', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ filename }),
         });
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Failed to get upload URL');
+        }
+
+        const { uploadUrl, url } = await response.json();
+
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': file.type || 'application/octet-stream',
+            'x-access': 'public',
+          },
+          body: file,
+        });
+
+        if (!uploadResponse.ok) {
+          const errorData = await uploadResponse.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Upload failed');
+        }
 
         return {
           success: true,
-          url: result.url || '',
+          url,
           filename,
           originalName: file.name,
         };
