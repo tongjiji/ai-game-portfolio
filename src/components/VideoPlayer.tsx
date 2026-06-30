@@ -10,7 +10,7 @@ const SPEEDS = [0.5, 0.75, 1, 1.25, 1.5, 2];
 
 export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
@@ -18,8 +18,7 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
   const [playbackSpeed, setPlaybackSpeed] = useState(1);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   const [buffered, setBuffered] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const controlsRef = useRef<HTMLDivElement>(null);
@@ -58,11 +57,41 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
   }, [isPlaying]);
 
   useEffect(() => {
-    if (videoRef.current && isPlaying && !isLoaded) {
-      videoRef.current.load();
-      setIsLoaded(true);
-    }
-  }, [isPlaying, isLoaded]);
+    const video = videoRef.current;
+    if (!video) return;
+
+    video.muted = true;
+    setIsMuted(true);
+    
+    video.play().then(() => {
+      setIsPlaying(true);
+    }).catch(() => {
+      setIsPlaying(false);
+    });
+
+    return () => {
+      video.pause();
+    };
+  }, []);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        video.pause();
+        setIsPlaying(false);
+      } else if (isMuted) {
+        video.play().then(() => setIsPlaying(true)).catch(() => {});
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isMuted]);
 
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
@@ -72,18 +101,8 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
 
   const handlePlayPause = () => {
     if (!videoRef.current) return;
-    
-    if (!isLoaded) {
-      videoRef.current.load();
-      setIsLoaded(true);
-      setIsLoading(true);
-      videoRef.current.play().then(() => {
-        setIsPlaying(true);
-        setIsLoading(false);
-      }).catch(() => {
-        setIsLoading(false);
-      });
-    } else if (isPlaying) {
+
+    if (isPlaying) {
       videoRef.current.pause();
       setIsPlaying(false);
     } else {
@@ -177,7 +196,9 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
           onWaiting={handleWaiting}
           onCanPlay={handleCanPlay}
           onClick={(e) => e.stopPropagation()}
-          preload="none"
+          preload="auto"
+          playsInline
+          loop={false}
         />
       </div>
 
@@ -195,31 +216,31 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
             e.stopPropagation();
             handlePlayPause();
           }}
-          className="w-20 h-20 rounded-full bg-gradient-to-r from-tech-blue to-tech-purple flex items-center justify-center border-glow-blue hover:scale-110 transition-transform duration-300"
+          className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-r from-tech-blue to-tech-purple flex items-center justify-center border-glow-blue hover:scale-110 transition-transform duration-300"
         >
-          <Play className="w-10 h-10 text-white ml-1" />
+          <Play className="w-8 h-8 sm:w-10 sm:h-10 text-white ml-1" />
         </button>
-        <p className="mt-4 text-white/80 text-lg font-medium">{title}</p>
+        <p className="mt-3 text-white/80 text-sm sm:text-lg font-medium text-center px-4">{title}</p>
       </div>
 
       <div
         ref={controlsRef}
-        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${
+        className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 sm:p-4 transition-opacity duration-300 ${
           isPlaying && !isLoading ? 'opacity-0' : 'opacity-100'
         }`}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={(e) => {
               e.stopPropagation();
               handlePlayPause();
             }}
-            className="text-white hover:text-tech-blue transition-colors"
+            className="text-white hover:text-tech-blue transition-colors flex-shrink-0"
           >
-            {isPlaying ? <Pause className="w-6 h-6" /> : <Play className="w-6 h-6" />}
+            {isPlaying ? <Pause className="w-5 h-5 sm:w-6 sm:h-6" /> : <Play className="w-5 h-5 sm:w-6 sm:h-6" />}
           </button>
 
-          <div className="flex-1 relative h-2 bg-white/20 rounded-full cursor-pointer" onClick={handleSeek}>
+          <div className="flex-1 relative h-1.5 sm:h-2 bg-white/20 rounded-full cursor-pointer" onClick={handleSeek}>
             <div 
               className="absolute left-0 top-0 h-full bg-gradient-to-r from-tech-blue to-tech-purple rounded-full"
               style={{ width: `${progress}%` }}
@@ -229,27 +250,27 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
               style={{ width: `${buffered}%` }}
             />
             <div 
-              className="absolute top-1/2 -translate-y-1/2 w-4 h-4 bg-white rounded-full opacity-0 hover:opacity-100 transition-opacity"
-              style={{ left: `calc(${progress}% - 8px)` }}
+              className="absolute top-1/2 -translate-y-1/2 w-3 h-3 sm:w-4 sm:h-4 bg-white rounded-full opacity-0 hover:opacity-100 transition-opacity"
+              style={{ left: `calc(${progress}% - 6px)` }}
             />
           </div>
 
-          <span className="text-white/70 text-sm">{formatTime(currentTime)}</span>
-          <span className="text-white/40 text-sm">/</span>
-          <span className="text-white/70 text-sm">{formatTime(duration)}</span>
+          <span className="text-white/70 text-xs sm:text-sm flex-shrink-0">{formatTime(currentTime)}</span>
+          <span className="text-white/40 text-xs sm:text-sm flex-shrink-0">/</span>
+          <span className="text-white/70 text-xs sm:text-sm flex-shrink-0">{formatTime(duration)}</span>
 
-          <div className="relative">
+          <div className="relative flex-shrink-0 hidden sm:block">
             <button
               onClick={(e) => {
                 e.stopPropagation();
                 setShowSpeedMenu(!showSpeedMenu);
               }}
-              className="text-white/70 hover:text-white text-sm font-medium px-2 py-1 rounded"
+              className="text-white/70 hover:text-white text-xs sm:text-sm font-medium px-2 py-1 rounded"
             >
               {playbackSpeed}x
             </button>
             {showSpeedMenu && (
-              <div className="absolute bottom-full left-0 mb-2 bg-black/90 rounded-lg p-2 flex flex-col">
+              <div className="absolute bottom-full left-0 mb-2 bg-black/90 rounded-lg p-2 flex flex-col z-50">
                 {SPEEDS.map((speed) => (
                   <button
                     key={speed}
@@ -257,7 +278,7 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
                       e.stopPropagation();
                       handleSpeedChange(speed);
                     }}
-                    className={`px-4 py-1.5 text-sm rounded ${playbackSpeed === speed ? 'bg-tech-blue text-white' : 'text-white/70 hover:text-white'}`}
+                    className={`px-3 py-1 text-xs sm:text-sm rounded ${playbackSpeed === speed ? 'bg-tech-blue text-white' : 'text-white/70 hover:text-white'}`}
                   >
                     {speed}x
                   </button>
@@ -271,9 +292,9 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
               e.stopPropagation();
               toggleMute();
             }}
-            className="text-white hover:text-tech-blue transition-colors"
+            className="text-white hover:text-tech-blue transition-colors flex-shrink-0"
           >
-            {isMuted ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
+            {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
 
           <button
@@ -281,9 +302,9 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
               e.stopPropagation();
               toggleFullscreen();
             }}
-            className="text-white hover:text-tech-blue transition-colors"
+            className="text-white hover:text-tech-blue transition-colors flex-shrink-0"
           >
-            {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+            {isFullscreen ? <Minimize className="w-4 h-4 sm:w-5 sm:h-5" /> : <Maximize className="w-4 h-4 sm:w-5 sm:h-5" />}
           </button>
 
           <button
@@ -291,9 +312,9 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
               e.stopPropagation();
               handleRestart();
             }}
-            className="text-white hover:text-tech-blue transition-colors"
+            className="text-white hover:text-tech-blue transition-colors flex-shrink-0"
           >
-            <RotateCcw className="w-5 h-5" />
+            <RotateCcw className="w-4 h-4 sm:w-5 sm:h-5" />
           </button>
         </div>
       </div>
