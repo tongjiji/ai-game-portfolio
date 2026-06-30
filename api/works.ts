@@ -22,7 +22,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const { data: works, error } = await supabase
           .from('works')
           .select('*')
-          .order('createdAt', { ascending: false });
+          .order('createdat', { ascending: false });
 
         if (error) {
           console.error('Works query error:', error);
@@ -36,8 +36,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       const newWork = {
         ...workData,
         id: workData.id || Date.now().toString(),
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
+        createdat: new Date().toISOString(),
+        updatedat: new Date().toISOString(),
       };
 
       const { data: work, error } = await supabase
@@ -60,7 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         .from('works')
         .update({
           ...updateData,
-          updatedAt: new Date().toISOString(),
+          updatedat: new Date().toISOString(),
         })
         .eq('id', id);
 
