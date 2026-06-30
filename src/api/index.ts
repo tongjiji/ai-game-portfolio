@@ -60,14 +60,14 @@ export const api = {
   upload: {
     single: async (file: File) => {
       try {
-        const filename = `${Date.now()}-${file.name}`;
+        const safeFilename = `${Date.now()}-${encodeURIComponent(file.name)}`;
 
         const response = await fetch('/api/upload', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ filename }),
+          body: JSON.stringify({ filename: safeFilename }),
         });
 
         if (!response.ok) {
@@ -94,7 +94,7 @@ export const api = {
         return {
           success: true,
           url,
-          filename,
+          filename: safeFilename,
           originalName: file.name,
         };
       } catch (error) {
