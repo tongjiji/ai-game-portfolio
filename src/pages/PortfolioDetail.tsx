@@ -9,30 +9,23 @@ import { formatDate } from '../utils/format';
 export const PortfolioDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [work, setWork] = useState<typeof works[0] | null>(null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const localWork = works.find((w) => w.id === id);
+    if (localWork) {
+      setWork(localWork);
+    }
+
     const fetchWork = async () => {
       try {
         const data = await api.works.get(id || '');
-        setWork(data as typeof works[0] || null);
-      } catch {
-        const localWork = works.find((w) => w.id === id);
-        setWork(localWork || null);
-      } finally {
-        setLoading(false);
-      }
+        if (data) {
+          setWork(data as typeof works[0]);
+        }
+      } catch {}
     };
     fetchWork();
   }, [id]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-tech-dark flex items-center justify-center">
-        <div className="text-tech-blue text-glow-blue">加载中...</div>
-      </div>
-    );
-  }
 
   if (!work) {
     return (
@@ -49,7 +42,7 @@ export const PortfolioDetail = () => {
 
   const details = work.details || { concept: '', tools: [], scene: '' };
   const tags = work.tags || [];
-  const videoUrl = work.videoUrl?.startsWith('http://') ? `/api/video?url=${encodeURIComponent(work.videoUrl)}` : work.videoUrl;
+  const videoUrl = work.videoUrl?.startsWith('http://') ? work.videoUrl.replace('http://', 'https://') : work.videoUrl;
 
   return (
     <div className="min-h-screen bg-tech-dark">
