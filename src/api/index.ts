@@ -1,6 +1,8 @@
 import { profile as defaultProfile } from '../data/profile';
 import { works as defaultWorks } from '../data/works';
-import { upload } from '@vercel/blob/client';
+
+const BLOB_READ_WRITE_TOKEN = import.meta.env.VITE_BLOB_READ_WRITE_TOKEN || '';
+const BLOB_URL = 'https://blob.vercel-storage.com';
 
 export const api = {
   profile: {
@@ -61,20 +63,35 @@ export const api = {
   upload: {
     single: async (file: File) => {
       try {
+        if (!BLOB_READ_WRITE_TOKEN) {
+          return {
+            success: false,
+            message: 'BLOB_READ_WRITE_TOKEN 环境变量未配置',
+          };
+        }
+
         const filename = `${Date.now()}-${file.name}`;
-        
-        const result = await upload(filename, file, {
-          access: 'public',
-          handleUploadUrl: '/api/upload',
+
+        const response = await fetch(`${BLOB_URL}/${filename}`, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${BLOB_READ_WRITE_TOKEN}`,
+            'x-access': 'public',
+            'Content-Type': file.type || 'application/octet-stream',
+          },
+          body: file,
         });
 
-        if (!result.url) {
-          throw new Error('Upload failed');
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          throw new Error(errorData.error || 'Upload failed');
         }
+
+        const result = await response.json();
 
         return {
           success: true,
-          url: result.url,
+          url: result.url || result.downloadUrl || '',
           filename,
           originalName: file.name,
         };
