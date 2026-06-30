@@ -14,19 +14,18 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
         if (error) {
           console.error('Work query error:', error);
-          return res.status(404).json({ success: false, message: '作品不存在' });
+          return res.status(404).json({ success: false, message: '作品不存在', error: error.message });
         }
 
         res.status(200).json(work);
       } else {
         const { data: works, error } = await supabase
           .from('works')
-          .select('*')
-          .order('createdat', { ascending: false });
+          .select('id, title, videoUrl');
 
         if (error) {
           console.error('Works query error:', error);
-          return res.status(500).json({ success: false, message: '获取作品列表失败' });
+          return res.status(500).json({ success: false, message: '获取作品列表失败', error: error.message });
         }
 
         res.status(200).json(works);
