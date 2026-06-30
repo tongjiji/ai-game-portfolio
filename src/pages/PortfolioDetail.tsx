@@ -9,36 +9,16 @@ import { formatDate } from '../utils/format';
 export const PortfolioDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [work, setWork] = useState<typeof works[0] | null>(null);
-  const [videoUrl, setVideoUrl] = useState('');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchWork = async () => {
       try {
         const data = await api.works.get(id || '');
-        const workData = data as typeof works[0];
-        setWork(workData);
-        if (workData?.videoUrl) {
-          if (workData.videoUrl.includes('thftfh6tw.hd-bkt.clouddn.com')) {
-            const key = workData.videoUrl.replace(/^https?:\/\/thftfh6tw\.hd-bkt\.clouddn\.com\//, '');
-            const signedUrl = await api.qiniu.getSignedUrl(key);
-            setVideoUrl(signedUrl);
-          } else {
-            setVideoUrl(workData.videoUrl);
-          }
-        }
+        setWork(data as typeof works[0] || null);
       } catch {
         const localWork = works.find((w) => w.id === id);
         setWork(localWork || null);
-        if (localWork?.videoUrl) {
-          if (localWork.videoUrl.includes('thftfh6tw.hd-bkt.clouddn.com')) {
-            const key = localWork.videoUrl.replace(/^https?:\/\/thftfh6tw\.hd-bkt\.clouddn\.com\//, '');
-            const signedUrl = await api.qiniu.getSignedUrl(key);
-            setVideoUrl(signedUrl);
-          } else {
-            setVideoUrl(localWork.videoUrl);
-          }
-        }
       } finally {
         setLoading(false);
       }
@@ -82,7 +62,7 @@ export const PortfolioDetail = () => {
           </div>
 
           <div className="mb-10">
-            <VideoPlayer videoUrl={videoUrl || work.videoUrl} title={work.title} />
+            <VideoPlayer videoUrl={work.videoUrl} title={work.title} />
           </div>
 
           <div className="flex items-center gap-3 mb-6">
