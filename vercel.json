@@ -3,9 +3,5 @@
     "api/*.ts": {
       "runtime": "@vercel/node@5.8.22"
     }
-  },
-  "rewrites": [
-    { "source": "/api/(.*)", "destination": "/api/$1" },
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  }
 }
