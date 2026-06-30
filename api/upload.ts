@@ -12,11 +12,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       return res.status(400).json({ error: 'filename is required' });
     }
 
-    if (!process.env.BLOB_READ_WRITE_TOKEN) {
-      return res.status(500).json({ error: 'BLOB_READ_WRITE_TOKEN is not set' });
+    const blobToken = process.env.BLOB_READ_WRITE_TOKEN || process.env.VITE_BLOB_READ_WRITE_TOKEN;
+    
+    if (!blobToken) {
+      return res.status(500).json({ error: 'BLOB_READ_WRITE_TOKEN or VITE_BLOB_READ_WRITE_TOKEN is not set' });
     }
 
-    const uploadUrl = `https://blob.vercel-storage.com/${filename}?token=${process.env.BLOB_READ_WRITE_TOKEN}`;
+    const uploadUrl = `https://blob.vercel-storage.com/${filename}?token=${blobToken}`;
 
     return res.status(200).json({ 
       uploadUrl,
