@@ -1,6 +1,7 @@
 import { Play } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import type { VideoWork } from '../data/works';
+import { formatDate } from '../utils/format';
 
 interface VideoCardProps {
   work: VideoWork;
@@ -43,7 +44,7 @@ export const VideoCard = ({ work }: VideoCardProps) => {
         </p>
 
         <div className="flex items-center justify-between mt-4">
-          <span className="text-xs text-white/40">{work.createdAt}</span>
+          <span className="text-xs text-white/40">{formatDate(work.createdAt)}</span>
           <span className="text-xs text-tech-blue opacity-0 group-hover:opacity-100 transition-opacity duration-300">
             查看详情 →
           </span>

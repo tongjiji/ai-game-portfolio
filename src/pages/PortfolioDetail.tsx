@@ -4,6 +4,7 @@ import { ArrowLeft } from 'lucide-react';
 import { VideoPlayer } from '../components/VideoPlayer';
 import { api } from '../api';
 import { works } from '../data/works';
+import { formatDate } from '../utils/format';
 
 export const PortfolioDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -67,7 +68,7 @@ export const PortfolioDetail = () => {
             <span className="px-4 py-1.5 glass-card text-white/80 text-xs font-medium rounded-full">
               {work.aiModel}
             </span>
-            <span className="text-xs text-white/40">{work.createdAt}</span>
+            <span className="text-xs text-white/40">{formatDate(work.createdAt)}</span>
           </div>
 
           <h1 className="text-3xl md:text-4xl font-semibold text-white text-glow-white mb-6">
