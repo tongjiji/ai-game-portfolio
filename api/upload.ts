@@ -10,11 +10,16 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     const jsonBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     const body = jsonBody as HandleUploadBody;
     
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+      return res.status(500).json({ error: 'BLOB_READ_WRITE_TOKEN environment variable is not set' });
+    }
+    
     if (body.type === 'blob.generate-client-token') {
       const token = await generateClientToken({
         pathname: body.payload.pathname,
         clientPayload: body.payload.clientPayload,
         multipart: body.payload.multipart,
+        token: process.env.BLOB_READ_WRITE_TOKEN,
       });
       
       return res.status(200).json({ token });
