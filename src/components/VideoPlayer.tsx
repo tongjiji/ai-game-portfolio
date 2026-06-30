@@ -83,8 +83,9 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
     }
   };
 
-  const handleDurationChange = () => {videoRef.current) {
-        setDuration(videoRef.current.duration);
+  const handleDurationChange = () => {
+    if (videoRef.current) {
+      setDuration(videoRef.current.duration);
     }
   };
 
