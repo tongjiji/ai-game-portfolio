@@ -75,13 +75,16 @@ export const api = {
           throw new Error(errorData.error || 'Failed to get upload URL');
         }
 
-        const { uploadUrl, url } = await response.json();
+        const { uploadUrl, url, token } = await response.json();
 
-        const uploadResponse = await fetch(uploadUrl, {
+        const blobUrl = uploadUrl.split('?')[0];
+
+        const uploadResponse = await fetch(blobUrl, {
           method: 'PUT',
           headers: {
-            'Content-Type': file.type || 'application/octet-stream',
+            'Authorization': `Bearer ${token}`,
             'x-access': 'public',
+            'Content-Type': file.type || 'application/octet-stream',
           },
           body: file,
         });
@@ -91,9 +94,11 @@ export const api = {
           throw new Error(errorData.error || 'Upload failed');
         }
 
+        const result = await uploadResponse.json();
+
         return {
           success: true,
-          url,
+          url: result.url || result.downloadUrl || url,
           filename: safeFilename,
           originalName: file.name,
         };

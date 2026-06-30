@@ -23,6 +23,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({ 
       uploadUrl,
       url: `https://public.blob.vercel-storage.com/${filename}`,
+      token: blobToken,
     });
   } catch (error) {
     console.error('Upload handler error:', error);
