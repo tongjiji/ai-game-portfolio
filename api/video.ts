@@ -1,36 +1,31 @@
-export default async function handler(req: { query: { url: string } }, res: { setHeader: (arg0: string, arg1: string) => void; status: (arg0: number) => void; end: (arg0?: any) => void }) {
-  const { url } = req.query;
-  
+export const config = {
+  runtime: 'edge',
+};
+
+export default async function handler(request: Request): Promise<Response> {
+  const { searchParams } = new URL(request.url);
+  const url = searchParams.get('url');
+
   if (!url) {
-    res.status(400).end('url is required');
-    return;
+    return new Response('url is required', { status: 400 });
   }
 
-  const targetUrl = typeof url === 'string' ? url : url[0];
-  
   try {
-    const response = await fetch(targetUrl);
+    const response = await fetch(url, {
+      headers: {
+        ...request.headers,
+        'host': new URL(url).host,
+      },
+    });
 
-    if (!response.ok) {
-      res.status(response.status).end('Failed to fetch video');
-      return;
-    }
-
-    res.setHeader('Content-Type', response.headers.get('Content-Type') || 'video/mp4');
-    res.setHeader('Content-Length', response.headers.get('Content-Length') || '');
-    res.setHeader('Accept-Ranges', 'bytes');
-    res.setHeader('Cache-Control', 'public, max-age=604800');
-    
-    res.status(response.status);
-    
-    if (response.body) {
-      const buffer = await response.arrayBuffer();
-      res.end(Buffer.from(buffer));
-    } else {
-      res.end();
-    }
+    return new Response(response.body, {
+      status: response.status,
+      headers: {
+        ...response.headers,
+        'access-control-allow-origin': '*',
+      },
+    });
   } catch (error) {
-    console.error('Video proxy error:', error);
-    res.status(500).end('Proxy error');
+    return new Response('Proxy error', { status: 500 });
   }
 }
