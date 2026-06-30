@@ -49,7 +49,7 @@ export const PortfolioDetail = () => {
 
   const details = work.details || { concept: '', tools: [], scene: '' };
   const tags = work.tags || [];
-  const videoUrl = work.videoUrl;
+  const videoUrl = work.videoUrl?.startsWith('http://') ? `/api/video?url=${encodeURIComponent(work.videoUrl)}` : work.videoUrl;
 
   return (
     <div className="min-h-screen bg-tech-dark">
