@@ -21,7 +21,7 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
   const controlsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (videoUrl.startsWith('http://')) {
+    if (videoUrl && (videoUrl.startsWith('http://') || videoUrl.includes('thftfh6tw.hd-bkt.clouddn.com'))) {
       setShowExternalLink(true);
       setIsLoading(false);
       return;
