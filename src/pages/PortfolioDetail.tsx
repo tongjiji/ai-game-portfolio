@@ -42,7 +42,6 @@ export const PortfolioDetail = () => {
 
   const details = work.details || { concept: '', tools: [], scene: '' };
   const tags = work.tags || [];
-  const videoUrl = work.videoUrl?.startsWith('http://') ? work.videoUrl.replace('http://', 'https://') : work.videoUrl;
 
   return (
     <div className="min-h-screen bg-tech-dark">
@@ -56,7 +55,7 @@ export const PortfolioDetail = () => {
           </div>
 
           <div className="mb-10">
-            <VideoPlayer videoUrl={videoUrl} title={work.title} />
+            <VideoPlayer videoUrl={work.videoUrl} title={work.title} />
           </div>
 
           <div className="flex items-center gap-3 mb-6">
