@@ -1,5 +1,6 @@
 import { profile as defaultProfile } from '../data/profile';
 import { works as defaultWorks } from '../data/works';
+import { put } from '@vercel/blob';
 
 export const api = {
   profile: {
@@ -60,7 +61,7 @@ export const api = {
   upload: {
     single: async (file: File) => {
       try {
-        const safeFilename = `${Date.now()}-${encodeURIComponent(file.name)}`;
+        const safeFilename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_')}`;
 
         const response = await fetch('/api/upload', {
           method: 'POST',
@@ -75,30 +76,16 @@ export const api = {
           throw new Error(errorData.error || 'Failed to get upload URL');
         }
 
-        const { uploadUrl, url, token } = await response.json();
+        const { token } = await response.json();
 
-        const blobUrl = uploadUrl.split('?')[0];
-
-        const uploadResponse = await fetch(blobUrl, {
-          method: 'PUT',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'x-access': 'public',
-            'Content-Type': file.type || 'application/octet-stream',
-          },
-          body: file,
+        const result = await put(safeFilename, file, {
+          access: 'public',
+          token: token as string,
         });
-
-        if (!uploadResponse.ok) {
-          const errorData = await uploadResponse.json().catch(() => ({}));
-          throw new Error(errorData.error || 'Upload failed');
-        }
-
-        const result = await uploadResponse.json();
 
         return {
           success: true,
-          url: result.url || result.downloadUrl || url,
+          url: result.url,
           filename: safeFilename,
           originalName: file.name,
         };
