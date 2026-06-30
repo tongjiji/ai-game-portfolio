@@ -131,7 +131,7 @@ export const VideoPlayer = ({ videoUrl, title }: VideoPlayerProps) => {
     <div
       ref={containerRef}
       className="relative w-full bg-black rounded-xl overflow-hidden"
-      onClick={handlePlayPause}
+      onClick={showExternalLink ? undefined : handlePlayPause}
     >
       {showExternalLink ? (
         <div className="aspect-video flex flex-col items-center justify-center bg-gradient-to-br from-tech-blue/20 to-tech-purple/20">
