@@ -9,11 +9,13 @@ import { formatDate } from '../utils/format';
 export const PortfolioDetail = () => {
   const { id } = useParams<{ id: string }>();
   const [work, setWork] = useState<typeof works[0] | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const localWork = works.find((w) => w.id === id);
     if (localWork) {
       setWork(localWork);
+      setIsLoading(false);
     }
 
     const fetchWork = async () => {
@@ -22,10 +24,24 @@ export const PortfolioDetail = () => {
         if (data) {
           setWork(data as typeof works[0]);
         }
-      } catch {}
+        setIsLoading(false);
+      } catch {
+        setIsLoading(false);
+      }
     };
     fetchWork();
   }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-tech-dark flex items-center justify-center">
+        <div className="text-center px-6">
+          <div className="w-12 h-12 border-4 border-tech-blue/30 border-t-tech-blue rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-white/60 text-sm">加载中...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!work) {
     return (
