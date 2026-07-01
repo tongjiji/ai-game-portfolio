@@ -9,22 +9,29 @@ interface VideoPlayerProps {
 
 export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isMuted, setIsMuted] = useState(true);
+  const [isMuted, setIsMuted] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isHovering, setIsHovering] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [buffered, setBuffered] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-    video.muted = true;
-    setIsMuted(true);
+    video.muted = false;
+    setIsMuted(false);
+    video.play().then(() => {
+      setIsPlaying(true);
+      setIsLoading(false);
+    }).catch(() => {
+      setIsPlaying(false);
+      setIsLoading(false);
+    });
     return () => {
       video.pause();
     };
@@ -122,7 +129,7 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
       onMouseLeave={() => setIsHovering(false)}
     >
       <div className="aspect-video relative">
-        {coverUrl && !isPlaying && (
+        {coverUrl && !isPlaying && !isLoading && (
           <img
             src={coverUrl}
             alt={title}
@@ -141,10 +148,9 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
           onWaiting={handleWaiting}
           onCanPlay={handleCanPlay}
           onClick={(e) => e.stopPropagation()}
-          preload="metadata"
+          preload="auto"
           playsInline
           loop={false}
-          muted
         />
       </div>
 
@@ -159,7 +165,7 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
         </div>
       )}
 
-      {!isPlaying && (
+      {!isPlaying && !isLoading && (
         <div className="absolute inset-0 flex flex-col justify-center items-center z-10">
           <button
             onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
