@@ -38,7 +38,7 @@ export const Home = () => {
     <div className="min-h-screen bg-tech-dark tech-grid" style={{ scrollSnapType: 'y mandatory', overflowY: 'scroll', height: '100vh' }}>
       <div className="fixed inset-0 scanline z-50 pointer-events-none" />
 
-      <ImageBackground imageSrc="/pets/1.png" id="hero">
+      <ImageBackground imageSrc="/pets/1.webp" id="hero">
         <div className="text-center px-4">
           <div className="flex items-center justify-center gap-2 mb-6">
             <Sparkles className="w-4 h-4 text-tech-blue" />
@@ -81,7 +81,7 @@ export const Home = () => {
         </div>
       </ImageBackground>
 
-      <ImageBackground imageSrc="/pets/2.png" id="about">
+      <ImageBackground imageSrc="/pets/2.webp" id="about">
         <div className="max-w-7xl mx-auto px-4 h-full relative">
           <div className="text-center mb-6 pt-4">
             <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">About Me</span>
@@ -214,7 +214,7 @@ export const Home = () => {
         </div>
       </ImageBackground>
 
-      <ImageBackground imageSrc="/pets/3.png" id="demos">
+      <ImageBackground imageSrc="/pets/3.webp" id="demos">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-6">
             <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">Demos</span>
@@ -263,7 +263,7 @@ export const Home = () => {
         </div>
       </ImageBackground>
 
-      <ImageBackground imageSrc="/pets/4.png" id="projects">
+      <ImageBackground imageSrc="/pets/4.webp" id="projects">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-6">
             <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">Projects</span>
@@ -292,7 +292,7 @@ export const Home = () => {
         </div>
       </ImageBackground>
 
-      <ImageBackground imageSrc="/pets/5.png" id="contact">
+      <ImageBackground imageSrc="/pets/5.webp" id="contact">
         <div className="max-w-3xl mx-auto px-4 text-center">
           <span className="text-tech-blue text-xs tracking-wider uppercase text-glow-blue">Contact</span>
           <h2 className="text-3xl md:text-4xl font-bold mt-2 text-white text-glow-white">联系我</h2>
