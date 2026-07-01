@@ -13,19 +13,19 @@ export const PortfolioDetail = () => {
 
   useEffect(() => {
     const localWork = works.find((w) => w.id === id);
-    if (localWork) {
-      setWork(localWork);
-      setIsLoading(false);
-    }
-
     const fetchWork = async () => {
       try {
         const data = await api.works.get(id || '');
         if (data) {
           setWork(data as typeof works[0]);
+        } else if (localWork) {
+          setWork(localWork);
         }
-        setIsLoading(false);
       } catch {
+        if (localWork) {
+          setWork(localWork);
+        }
+      } finally {
         setIsLoading(false);
       }
     };
