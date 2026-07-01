@@ -104,7 +104,7 @@ export const Home = () => {
 
           <div className="overflow-y-auto max-h-[calc(100vh-260px)] sm:max-h-[calc(100vh-240px)] pr-2">
             {activeTab === 'profile' && (
-              <div className="space-y-4">
+              <div className="space-y-4 min-h-[500px]">
                 <div className="glass-card rounded-2xl p-4 sm:p-5">
                   <div className="flex flex-col sm:flex-row items-center gap-4 mb-4">
                     <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-tech-blue via-tech-purple to-tech-pink flex items-center justify-center shadow-lg shadow-tech-blue/25">
@@ -168,7 +168,7 @@ export const Home = () => {
             )}
 
             {activeTab === 'skills' && (
-              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 min-h-[500px]">
                 {skillCategories.map((category) => (
                   <div key={category} className="glass-card rounded-xl p-3 sm:p-4">
                     <p className="text-tech-blue text-xs font-medium mb-2 flex items-center gap-1.5">
@@ -188,7 +188,7 @@ export const Home = () => {
             )}
 
             {activeTab === 'experience' && (
-              <div className="space-y-3">
+              <div className="space-y-3 min-h-[500px]">
                 {profile.experience.map((exp: { company: string; role: string; period: string; description: string; achievements: string[] }, index) => (
                   <div key={index} className="glass-card rounded-xl p-3 sm:p-5">
                     <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
