@@ -11,11 +11,12 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isHovering, setIsHovering] = useState(false);
   const [progress, setProgress] = useState(0);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [buffered, setBuffered] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -24,11 +25,6 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
     if (!video) return;
     video.muted = true;
     setIsMuted(true);
-    video.play().then(() => {
-      setIsPlaying(true);
-    }).catch(() => {
-      setIsPlaying(false);
-    });
     return () => {
       video.pause();
     };
@@ -47,9 +43,14 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
       videoRef.current.pause();
       setIsPlaying(false);
     } else {
+      setIsLoading(true);
       videoRef.current.play().then(() => {
         setIsPlaying(true);
-      }).catch(() => {});
+        setIsLoading(false);
+      }).catch(() => {
+        setIsPlaying(false);
+        setIsLoading(false);
+      });
     }
   };
 
@@ -117,6 +118,8 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
       ref={containerRef}
       className="relative w-full bg-gradient-to-br from-tech-dark via-black to-tech-dark rounded-2xl overflow-hidden shadow-2xl shadow-black/50"
       onClick={handlePlayPause}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
     >
       <div className="aspect-video relative">
         {coverUrl && !isPlaying && (
@@ -138,13 +141,14 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
           onWaiting={handleWaiting}
           onCanPlay={handleCanPlay}
           onClick={(e) => e.stopPropagation()}
-          preload="auto"
+          preload="metadata"
           playsInline
           loop={false}
+          muted
         />
       </div>
 
-      {isLoading && isPlaying && (
+      {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-20">
           <div className="relative">
             <div className="w-14 h-14 border-4 border-tech-blue/30 border-t-tech-blue rounded-full animate-spin" />
@@ -155,23 +159,21 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
         </div>
       )}
 
-      <div className={`absolute inset-0 flex flex-col justify-center items-center transition-all duration-500 z-10 ${
-        isPlaying ? 'opacity-0 pointer-events-none' : 'opacity-100'
-      }`}>
-        <button
-          onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
-          className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-tech-blue via-tech-purple to-tech-blue flex items-center justify-center shadow-lg shadow-tech-blue/40 hover:shadow-tech-blue/60 hover:scale-110 transition-all duration-300 animate-pulse-slow"
-        >
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-tech-blue to-tech-purple opacity-0 group-hover:opacity-50 blur-lg transition-opacity duration-300" />
-          <Play className="w-10 h-10 sm:w-12 sm:h-12 text-white ml-1 relative z-10" />
-        </button>
-        <p className="mt-4 text-white/90 text-base sm:text-lg font-medium text-center px-4 relative z-10">{title}</p>
-        <p className="mt-1 text-white/40 text-xs sm:text-sm text-center px-4 relative z-10">点击播放</p>
-      </div>
+      {!isPlaying && (
+        <div className="absolute inset-0 flex flex-col justify-center items-center z-10">
+          <button
+            onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
+            className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-gradient-to-r from-tech-blue via-tech-purple to-tech-blue flex items-center justify-center shadow-lg shadow-tech-blue/40 hover:shadow-tech-blue/60 hover:scale-110 transition-all duration-300"
+          >
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-tech-blue to-tech-purple opacity-0 group-hover:opacity-50 blur-lg transition-opacity duration-300" />
+            <Play className="w-10 h-10 sm:w-12 sm:h-12 text-white ml-1 relative z-10" />
+          </button>
+          <p className="mt-4 text-white/90 text-base sm:text-lg font-medium text-center px-4">{title}</p>
+        </div>
+      )}
 
-      <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 sm:p-6 transition-all duration-500 z-10 ${
-        isPlaying && !isLoading ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
-      }`}>
+      <div className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-4 sm:p-6 transition-all duration-300 z-10 ${isPlaying && !isHovering ? 'opacity-0 translate-y-4' : 'opacity-100 translate-y-0'
+        }`}>
         <div className="flex items-center gap-3 sm:gap-4">
           <button
             onClick={(e) => { e.stopPropagation(); handlePlayPause(); }}
@@ -212,17 +214,6 @@ export const VideoPlayer = ({ videoUrl, title, coverUrl }: VideoPlayerProps) => 
           </div>
         </div>
       </div>
-
-      <style>{`
-        @keyframes pulse-slow {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.8; }
-        }
-        .animate-pulse-slow {
-          animation: pulse-slow 2s ease-in-out infinite;
-        }
-      `}</style>
     </div>
   );
-    };
-    
+};

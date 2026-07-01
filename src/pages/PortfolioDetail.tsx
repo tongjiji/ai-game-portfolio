@@ -71,7 +71,7 @@ export const PortfolioDetail = () => {
           </div>
 
           <div className="mb-10">
-            <VideoPlayer videoUrl={work.videoUrl} title={work.title} />
+            <VideoPlayer videoUrl={work.videoUrl} title={work.title} coverUrl={work.coverUrl} />
           </div>
 
           <div className="flex items-center gap-3 mb-6">
