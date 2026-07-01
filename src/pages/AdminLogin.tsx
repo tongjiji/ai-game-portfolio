@@ -9,14 +9,14 @@ export const AdminLogin = () => {
   const navigate = useNavigate();
 
   const isAuthenticated = sessionStorage.getItem('admin_auth') === 'true';
-  
+
   if (isAuthenticated) {
     return <Navigate to="/admin" />;
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (password === 'admin123') {
       sessionStorage.setItem('admin_auth', 'true');
       navigate('/admin');
@@ -72,12 +72,6 @@ export const AdminLogin = () => {
             登录
           </button>
         </form>
-
-        <div className="text-center mt-6">
-          <p className="text-xs text-gray-500">
-            默认密码：admin123
-          </p>
-        </div>
       </div>
     </div>
   );
